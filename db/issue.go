@@ -1,6 +1,7 @@
 package db
 
 import (
+	"database/sql"
 	"time"
 )
 
@@ -31,14 +32,15 @@ const (
 // - [ ] Code = max(Code)+1 for issues and discussions but NULL for tasks
 
 type Issue struct {
-	ID        uint `gorm:"primarykey"`
-	CreatedAt time.Time
+	ID          uint `gorm:"primarykey"`
+	CreatedAt   time.Time
+	CompletedAt sql.NullTime
 
 	Code   *uint // for Tasks this will be nil
 	Title  string
-	Tags   string // comma separated
-	Status IssueStatus
-	Kind   IssueKind
+	Tags   string      // comma separated
+	Status IssueStatus `gorm:"check:status>=0;check:status <=3"`
+	Kind   IssueKind   `gorm:"check:kind in ('', 'task',  'discussion')"`
 
 	ProjectID uint
 	Project   Project

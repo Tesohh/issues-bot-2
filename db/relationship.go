@@ -15,5 +15,5 @@ type Relationship struct {
 	ToIssueID uint
 	ToIssue   Issue
 
-	Kind RelationshipKind
+	Kind RelationshipKind `gorm:"check:kind in ('')"`
 }
