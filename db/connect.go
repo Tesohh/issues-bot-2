@@ -16,7 +16,7 @@ func Connect(path string) (*gorm.DB, error) {
 		return nil, err
 	}
 
-	db.AutoMigrate()
+	db.AutoMigrate(&Role{}, &Guild{}, &User{}, &Project{}, &Issue{}, &Relationship{})
 
 	Conn = db
 	slog.Info("Connected to db")
