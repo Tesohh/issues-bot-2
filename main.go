@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"issues/v2/db"
+	"issues/v2/handler"
 	"log"
 	"log/slog"
 	"os"
@@ -45,6 +46,7 @@ func main() {
 
 	slog.Info("adding handlers...")
 
+	session.AddHandler(handler.GuildJoinHandler)
 	session.AddHandler(executeCommandHandler)
 
 	err = registerCommands(session)
