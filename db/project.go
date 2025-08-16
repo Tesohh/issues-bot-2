@@ -7,6 +7,7 @@ type Project struct {
 	RepoURL string
 
 	DiscordCategoryChannelID string
+	GeneralChannelID         string
 	IssuesInputChannelID     string
 	AutoListMessageID        string
 

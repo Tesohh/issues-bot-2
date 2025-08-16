@@ -104,6 +104,8 @@ var Project = slash.Command{
 			name := options["name"].StringValue()
 			err = ProjectRename(s, i, prefix, name)
 		case "delete":
+			confirm := options["confirm"].BoolValue()
+			err = ProjectDelete(s, i, prefix, confirm)
 		}
 
 		return err
@@ -129,7 +131,7 @@ func ProjectNew(s *dg.Session, i *dg.Interaction, prefix string, name string, re
 	prefix = strings.ToLower(prefix)
 
 	generalChannelName := fmt.Sprintf("%s-general", prefix)
-	_, err = s.GuildChannelCreateComplex(i.GuildID, dg.GuildChannelCreateData{
+	generalChannel, err := s.GuildChannelCreateComplex(i.GuildID, dg.GuildChannelCreateData{
 		Name:     generalChannelName,
 		Type:     dg.ChannelTypeGuildText,
 		Topic:    repourl,
@@ -156,6 +158,7 @@ func ProjectNew(s *dg.Session, i *dg.Interaction, prefix string, name string, re
 		RepoURL:                  repourl,
 		DiscordCategoryChannelID: category.ID,
 		IssuesInputChannelID:     inputChannel.ID,
+		GeneralChannelID:         generalChannel.ID,
 		AutoListMessageID:        "", // TODO:
 		GuildID:                  i.GuildID,
 	}
@@ -170,12 +173,7 @@ func ProjectNew(s *dg.Session, i *dg.Interaction, prefix string, name string, re
 		Description: fmt.Sprintf("Check out <#%s>", inputChannel.ID),
 	}
 
-	err = slash.ReplyWithEmbed(s, i, embed, false)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return slash.ReplyWithEmbed(s, i, embed, false)
 }
 
 func ProjectRename(s *dg.Session, i *dg.Interaction, prefix string, name string) error {
@@ -204,5 +202,48 @@ func ProjectRename(s *dg.Session, i *dg.Interaction, prefix string, name string)
 	embed := dg.MessageEmbed{
 		Title: fmt.Sprintf("Successfully renamed `%s` to %s", prefix, name),
 	}
+	return slash.ReplyWithEmbed(s, i, embed, false)
+}
+
+func ProjectDelete(s *dg.Session, i *dg.Interaction, prefix string, confirmation bool) error {
+	if !confirmation {
+		return slash.ReplyWithEmbed(s, i, dg.MessageEmbed{
+			Title: "alright, no actions taken",
+		}, true)
+	}
+
+	// get project true id
+	project, err := db.Projects.
+		Select("id, discord_category_channel_id, general_channel_id, issues_input_channel_id").
+		Where("prefix = ? AND guild_id = ?", prefix, i.GuildID).
+		First(db.Ctx)
+	if err != nil {
+		return err
+	}
+
+	// delete all issues under this project
+	_, err = db.Issues.Where("project_id = ?", project.ID).Delete(db.Ctx)
+	if err != nil {
+		return err
+	}
+
+	// delete the project in the DB
+	_, err = db.Projects.Where("id = ?", project.ID).Delete(db.Ctx)
+	if err != nil {
+		return err
+	}
+
+	// delete the discord channels
+	for _, id := range []string{project.DiscordCategoryChannelID, project.GeneralChannelID, project.IssuesInputChannelID} {
+		_, err := s.ChannelDelete(id)
+		if err != nil {
+			return err
+		}
+	}
+
+	embed := dg.MessageEmbed{
+		Title: fmt.Sprintf("Deleted project `%s`", strings.ToUpper(prefix)),
+	}
+
 	return slash.ReplyWithEmbed(s, i, embed, false)
 }
