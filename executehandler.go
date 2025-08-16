@@ -1,7 +1,6 @@
 package main
 
 import (
-	"issues/v2/slash"
 	"log/slog"
 
 	"github.com/bwmarrin/discordgo"
@@ -16,10 +15,19 @@ var executeCommandHandler = func(s *discordgo.Session, i *discordgo.InteractionC
 		err := c.Func(s, i.Interaction)
 		if err != nil {
 			slog.Error(err.Error())
-			slash.ReplyWithEmbed(s, i.Interaction, discordgo.MessageEmbed{
+			embed := discordgo.MessageEmbed{
 				Title:       "Error",
 				Description: err.Error(),
-			}, true)
+				Color:       0xFF0000,
+			}
+
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Embeds: []*discordgo.MessageEmbed{&embed},
+					Flags:  discordgo.MessageFlagsEphemeral,
+				},
+			})
 		}
 	}
 }
