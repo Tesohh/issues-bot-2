@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"log/slog"
 
 	"gorm.io/driver/sqlite"
@@ -8,6 +9,15 @@ import (
 )
 
 var Conn *gorm.DB
+
+var Roles gorm.Interface[Role]
+var Guilds gorm.Interface[Guild]
+var Users gorm.Interface[User]
+var Projects gorm.Interface[Project]
+var Issues gorm.Interface[Issue]
+var Relationships gorm.Interface[Relationship]
+
+var Ctx = context.Background()
 
 func Connect(path string) (*gorm.DB, error) {
 	slog.Info("Connecting to db at", "path", path)
@@ -17,8 +27,15 @@ func Connect(path string) (*gorm.DB, error) {
 	}
 
 	db.AutoMigrate(&Role{}, &Guild{}, &User{}, &Project{}, &Issue{}, &Relationship{})
-
 	Conn = db
+
+	Roles = gorm.G[Role](Conn)
+	Guilds = gorm.G[Guild](Conn)
+	Users = gorm.G[User](Conn)
+	Projects = gorm.G[Project](Conn)
+	Issues = gorm.G[Issue](Conn)
+	Relationships = gorm.G[Relationship](Conn)
+
 	slog.Info("Connected to db")
 	return db, nil
 }
