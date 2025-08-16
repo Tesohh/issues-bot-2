@@ -90,6 +90,7 @@ var Project = slash.Command{
 		options := slash.GetOptionMapRaw(subcommand.Options)
 		prefix := strings.ToLower(options["prefix"].StringValue())
 
+		var err error
 		switch subcommand.Name {
 		case "new":
 			name := options["name"].StringValue()
@@ -98,14 +99,14 @@ var Project = slash.Command{
 				repourl = repourlRaw.StringValue()
 			}
 
-			err := ProjectNew(s, i, prefix, name, repourl)
-			if err != nil {
-				return err
-			}
+			err = ProjectNew(s, i, prefix, name, repourl)
 		case "rename":
+			name := options["name"].StringValue()
+			err = ProjectRename(s, i, prefix, name)
 		case "delete":
 		}
-		return nil
+
+		return err
 	},
 }
 
@@ -165,7 +166,7 @@ func ProjectNew(s *dg.Session, i *dg.Interaction, prefix string, name string, re
 	}
 
 	embed := dg.MessageEmbed{
-		Title:       fmt.Sprintf("Created project %s [%s]", name, strings.ToUpper(prefix)),
+		Title:       fmt.Sprintf("Created project %s [`%s`]", name, strings.ToUpper(prefix)),
 		Description: fmt.Sprintf("Check out <#%s>", inputChannel.ID),
 	}
 
@@ -175,4 +176,33 @@ func ProjectNew(s *dg.Session, i *dg.Interaction, prefix string, name string, re
 	}
 
 	return nil
+}
+
+func ProjectRename(s *dg.Session, i *dg.Interaction, prefix string, name string) error {
+	query := db.Projects.Where("prefix = ? AND guild_id = ?", prefix, i.GuildID)
+
+	rowsAffected, err := query.Update(db.Ctx, "name", name)
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return ErrProjectNotFound
+	}
+
+	project, err := query.Select("discord_category_channel_id").First(db.Ctx)
+	if err != nil {
+		return err
+	}
+
+	_, err = s.ChannelEdit(project.DiscordCategoryChannelID, &dg.ChannelEdit{Name: name})
+	if err != nil {
+		return err
+	}
+
+	// TODO: update autolist
+
+	embed := dg.MessageEmbed{
+		Title: fmt.Sprintf("Successfully renamed `%s` to %s", prefix, name),
+	}
+	return slash.ReplyWithEmbed(s, i, embed, false)
 }
