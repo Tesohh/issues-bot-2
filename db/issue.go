@@ -8,10 +8,10 @@ import (
 type IssueStatus uint8
 
 const (
-	IssueStatusTodo     IssueStatus = 0
-	IssueStatusDoing    IssueStatus = 1
-	IssueStatusDone     IssueStatus = 2
-	IssueStatusCanceled IssueStatus = 3
+	IssueStatusTodo    IssueStatus = 0
+	IssueStatusWorking IssueStatus = 1
+	IssueStatusDone    IssueStatus = 2
+	IssueStatusKilled  IssueStatus = 3
 )
 
 var IssueStatusIcons = [4]string{"🟩", "🟦", "🟪", "🟥"}
