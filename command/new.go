@@ -132,6 +132,13 @@ var New = slash.Command{
 			return err
 		}
 
+		issue.Project = project
+		thread, err := logic.CreateThreadFromIssue(issue, s, i)
+		if err != nil {
+			return err
+		}
+		_ = thread
+
 		return nil
 	},
 }

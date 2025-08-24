@@ -2,6 +2,8 @@ package db
 
 import (
 	"database/sql"
+	"fmt"
+	"strings"
 	"time"
 )
 
@@ -57,4 +59,18 @@ type Issue struct {
 
 	ThreadID  string
 	MessageID string
+}
+
+// Requires issue.Project.Prefix to be set, or else the prefix will be ???
+func (issue *Issue) HumanCode() string {
+	projectName := "???"
+	if len(issue.Project.Prefix) > 0 {
+		projectName = strings.ToUpper(issue.Project.Prefix)
+	}
+	return fmt.Sprintf("#%s-%d", projectName, *issue.Code)
+}
+
+// Requires issue.Project.Prefix to be set, or else the prefix will be ???
+func (issue *Issue) ChannelName() string {
+	return fmt.Sprintf("%s %s %s", issue.HumanCode(), IssueStatusIcons[issue.Status], issue.Title)
 }
