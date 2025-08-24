@@ -2,6 +2,7 @@ package logic
 
 import (
 	"issues/v2/db"
+	"log/slog"
 
 	dg "github.com/bwmarrin/discordgo"
 )
@@ -19,6 +20,11 @@ func CreateThreadFromIssue(issue *db.Issue, s *dg.Session, i *dg.Interaction) (*
 	_, err = db.Issues.Where("id = ?", issue.ID).Update(db.Ctx, "thread_id", thread.ID)
 	if err != nil {
 		return nil, err
+	}
+
+	err = s.ChannelMessageDelete(issue.Project.IssuesInputChannelID, thread.ID)
+	if err != nil {
+		slog.Warn("couldn't delete thread start message. no big deal", "err", err)
 	}
 
 	return thread, nil

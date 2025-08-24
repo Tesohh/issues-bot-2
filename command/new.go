@@ -1,9 +1,11 @@
 package command
 
 import (
+	"fmt"
 	"issues/v2/db"
 	"issues/v2/logic"
 	"issues/v2/slash"
+	"log/slog"
 	"strings"
 
 	dg "github.com/bwmarrin/discordgo"
@@ -64,6 +66,11 @@ var New = slash.Command{
 			return err
 		}
 
+		guild, err := db.Guilds.Where("id = ?", i.GuildID).First(db.Ctx)
+		if err != nil {
+			return err
+		}
+
 		title := opts["title"].StringValue()
 		tags := ""
 		if tagsOpt, ok := opts["tags"]; ok {
@@ -81,7 +88,7 @@ var New = slash.Command{
 			}
 		}
 
-		categoryRoleID := ""
+		categoryRoleID := guild.DefaultCategoryRoleID
 		if categoryRoleOpt, ok := opts["category"]; ok {
 			possibleID := categoryRoleOpt.Value.(string)
 			role, err := db.Roles.
@@ -94,7 +101,7 @@ var New = slash.Command{
 			}
 		}
 
-		priorityRoleID := ""
+		priorityRoleID := guild.DefaultPriorityRoleID
 		if priorityRoleOpt, ok := opts["priority"]; ok {
 			possibleID := priorityRoleOpt.Value.(string)
 			role, err := db.Roles.
@@ -129,13 +136,21 @@ var New = slash.Command{
 
 		issue, err = logic.AddIssueToDB(issue)
 		if err != nil {
-			return err
+			return fmt.Errorf("error in issue db insertion: %w", err)
+		}
+
+		slash.ReplyWithEmbed(s, i, dg.MessageEmbed{
+			Title: title,
+		}, true)
+		err = s.InteractionResponseDelete(i)
+		if err != nil {
+			slog.Warn("couldn't delete ack message. no big deal", "err", err)
 		}
 
 		issue.Project = project
 		thread, err := logic.CreateThreadFromIssue(issue, s, i)
 		if err != nil {
-			return err
+			return fmt.Errorf("error in thread creation: %w", err)
 		}
 		_ = thread
 
