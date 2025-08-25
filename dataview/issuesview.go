@@ -3,6 +3,7 @@ package dataview
 import (
 	"fmt"
 	"issues/v2/db"
+	"log/slog"
 
 	dg "github.com/bwmarrin/discordgo"
 )
@@ -114,8 +115,9 @@ func MakeIssuesView(unfilteredIssues []db.Issue, filter IssueFilter, options Iss
 			if issue.PriorityRoleID != options.DefaultPriorityRoleID {
 				priority = fmt.Sprintf("<@&%s>", issue.PriorityRoleID)
 			}
-			content += fmt.Sprintf("\n%s %s", issue.PrettyLink(), priority)
+			content += fmt.Sprintf("\n - %s %s", issue.PrettyLink(), priority)
 		}
+		slog.Debug("dataview content length", "len(content)", len(content), "len(group.Issues)", len(group.issues))
 		components = append(components, dg.TextDisplay{Content: content})
 		components = append(components, dg.Separator{})
 	}

@@ -123,11 +123,38 @@ var ComponentsV2Test = slash.Command{
 				ThreadID:       "1409194601516105808",
 			},
 		}
+		for range 20 {
+			sampleIssues = append(sampleIssues,
+				db.Issue{
+					ID:             3,
+					Code:           slash.Ptr(uint(3)),
+					Status:         db.IssueStatusWorking,
+					Title:          "issue #3",
+					CategoryRoleID: "1404946100275777556",
+					PriorityRoleID: "1404946111998984263",
+					Project:        db.Project{GuildID: "1404937966853427390"},
+					ThreadID:       "1409194601516105808",
+				})
+		}
+
 		view := dataview.MakeIssuesView(sampleIssues, dataview.IssueFilter{}, dataview.IssuesViewOptions{
 			TitleOverride:         "",
 			DefaultPriorityRoleID: "1404946108597145823",
 			GroupIssuesBy:         dataview.GroupIssuesByHybrid,
 		})
-		return slash.ReplyWithComponents(s, i, false, container, view)
+		view2 := dataview.MakeIssuesView(sampleIssues, dataview.IssueFilter{}, dataview.IssuesViewOptions{
+			TitleOverride:         "",
+			DefaultPriorityRoleID: "1404946108597145823",
+			GroupIssuesBy:         dataview.GroupIssuesByHybrid,
+		})
+		buttons := dg.ActionsRow{
+			Components: []dg.MessageComponent{
+				// dg.Button{Label: "", Style: dg.SecondaryButton, CustomID: "show-my-issues"},
+				dg.Button{Label: "Group by Hybrid", Style: dg.PrimaryButton, Emoji: &dg.ComponentEmoji{Name: "🔁"}, CustomID: "cycle-group-by"},
+				dg.Button{Label: "Show completed", Style: dg.PrimaryButton, CustomID: "show-completed"},
+				dg.Button{Label: "My issues", Style: dg.SuccessButton, CustomID: "show-my-issues"},
+			},
+		}
+		return slash.ReplyWithComponents(s, i, false, container, view, view2, buttons)
 	},
 }
