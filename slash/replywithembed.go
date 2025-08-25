@@ -5,7 +5,7 @@ import (
 )
 
 func ReplyWithEmbed(s *discordgo.Session, i *discordgo.Interaction, embed discordgo.MessageEmbed, ephemeral bool) error {
-	embed = StandardizeEmbed(embed)
+	embed = standardizeEmbed(embed)
 
 	var flags discordgo.MessageFlags
 	if ephemeral {

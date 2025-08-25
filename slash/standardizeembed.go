@@ -6,7 +6,7 @@ import (
 
 const EmbedColor = 0xffb703
 
-func StandardizeEmbed(embed discordgo.MessageEmbed) discordgo.MessageEmbed {
+func standardizeEmbed(embed discordgo.MessageEmbed) discordgo.MessageEmbed {
 	if embed.Color == 0 {
 		embed.Color = EmbedColor
 	}
