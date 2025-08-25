@@ -74,3 +74,9 @@ func (issue *Issue) HumanCode() string {
 func (issue *Issue) ChannelName() string {
 	return fmt.Sprintf("%s %s %s", issue.HumanCode(), IssueStatusIcons[issue.Status], issue.Title)
 }
+
+// - [`🟩 #25`](https://example.com) add Gòrni
+// Requires issue.Project.GuildID to be set, or else the link will be broken
+func (issue *Issue) PrettyLink() string {
+	return fmt.Sprintf("[`%s #%d`](https://discord.com/channels/%s/%s) %s", IssueStatusIcons[issue.Status], *issue.Code, issue.Project.GuildID, issue.ThreadID, issue.Title)
+}

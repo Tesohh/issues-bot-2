@@ -1,6 +1,8 @@
 package command
 
 import (
+	"issues/v2/dataview"
+	"issues/v2/db"
 	"issues/v2/slash"
 
 	dg "github.com/bwmarrin/discordgo"
@@ -43,10 +45,6 @@ var ComponentsV2Test = slash.Command{
 							CustomID: "select1",
 						},
 					},
-					dg.Separator{
-						Divider: slash.Ptr(true),
-						Spacing: slash.Ptr(dg.SeparatorSpacingSizeSmall),
-					},
 					dg.Section{
 						Components: []dg.MessageComponent{
 							dg.TextDisplay{Content: "⚪️ Example task #2"},
@@ -55,6 +53,26 @@ var ComponentsV2Test = slash.Command{
 							Label:    "Select",
 							Style:    dg.SecondaryButton,
 							CustomID: "select2",
+						},
+					},
+					dg.Section{
+						Components: []dg.MessageComponent{
+							dg.TextDisplay{Content: "⚪️ Example task #3"},
+						},
+						Accessory: dg.Button{
+							Label:    "Select",
+							Style:    dg.SecondaryButton,
+							CustomID: "select3",
+						},
+					},
+					dg.Section{
+						Components: []dg.MessageComponent{
+							dg.TextDisplay{Content: "⚪️ Example task #4"},
+						},
+						Accessory: dg.Button{
+							Label:    "Select",
+							Style:    dg.SecondaryButton,
+							CustomID: "select4",
 						},
 					},
 
@@ -72,6 +90,44 @@ var ComponentsV2Test = slash.Command{
 					},
 				},
 			}
-		return slash.ReplyWithComponents(s, i, false, container)
+
+		sampleIssues := []db.Issue{
+			{
+				ID:             1,
+				Code:           slash.Ptr(uint(1)),
+				Status:         db.IssueStatusTodo,
+				Title:          "issue #1",
+				CategoryRoleID: "1404946100275777556",
+				PriorityRoleID: "1404946108597145823",
+				Project:        db.Project{GuildID: "1404937966853427390"},
+				ThreadID:       "1409194601516105808",
+			},
+			{
+				ID:             2,
+				Code:           slash.Ptr(uint(2)),
+				Status:         db.IssueStatusKilled,
+				Title:          "issue #2",
+				CategoryRoleID: "1404946100275777556",
+				PriorityRoleID: "1404946108597145823",
+				Project:        db.Project{GuildID: "1404937966853427390"},
+				ThreadID:       "1409194601516105808",
+			},
+			{
+				ID:             3,
+				Code:           slash.Ptr(uint(3)),
+				Status:         db.IssueStatusWorking,
+				Title:          "issue #3",
+				CategoryRoleID: "1404946100275777556",
+				PriorityRoleID: "1404946111998984263",
+				Project:        db.Project{GuildID: "1404937966853427390"},
+				ThreadID:       "1409194601516105808",
+			},
+		}
+		view := dataview.MakeIssuesView(sampleIssues, dataview.IssueFilter{}, dataview.IssuesViewOptions{
+			TitleOverride:         "",
+			DefaultPriorityRoleID: "1404946108597145823",
+			GroupIssuesBy:         dataview.GroupIssuesByHybrid,
+		})
+		return slash.ReplyWithComponents(s, i, false, container, view)
 	},
 }
