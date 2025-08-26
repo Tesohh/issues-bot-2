@@ -88,7 +88,7 @@ var New = slash.Command{
 			}
 		}
 
-		categoryRoleID := guild.DefaultCategoryRoleID
+		categoryRoleID := guild.GenericCategoryRoleID
 		if categoryRoleOpt, ok := opts["category"]; ok {
 			possibleID := categoryRoleOpt.Value.(string)
 			role, err := db.Roles.
@@ -101,7 +101,7 @@ var New = slash.Command{
 			}
 		}
 
-		priorityRoleID := guild.DefaultPriorityRoleID
+		priorityRoleID := guild.NormalPriorityRoleID
 		if priorityRoleOpt, ok := opts["priority"]; ok {
 			possibleID := priorityRoleOpt.Value.(string)
 			role, err := db.Roles.

@@ -2,7 +2,6 @@ package handler
 
 import (
 	"issues/v2/db"
-	"issues/v2/slash"
 	"log/slog"
 
 	"github.com/bwmarrin/discordgo"
@@ -50,58 +49,56 @@ func registerGuild(event *discordgo.GuildCreate) (db.Guild, bool, error) {
 	return guild, isNew, nil
 }
 
-func registerRole(s *discordgo.Session, guildID string, role *discordgo.RoleParams, kind db.RoleKind) (db.Role, error) {
-	role.Mentionable = slash.Ptr(true)
-
-	discordRole, err := s.GuildRoleCreate(guildID, role)
+func registerRole(s *discordgo.Session, guildID string, role *roleDef, kind db.RoleKind) (db.Role, error) {
+	discordRole, err := s.GuildRoleCreate(guildID, role.ToDiscordRoleParams())
 	if err != nil {
 		return db.Role{}, err
 	}
 
 	dbrole := db.Role{
 		ID:      discordRole.ID,
+		Key:     role.Key,
+		Emoji:   role.Emoji,
 		Kind:    kind,
 		GuildID: guildID,
 	}
 
-	err = db.Conn.Create(&dbrole).Error
+	err = db.Roles.Create(db.Ctx, &dbrole)
 	return dbrole, err
 }
 
 func registerRoles(s *discordgo.Session, event *discordgo.GuildCreate, guild *db.Guild) error {
 	// register all categories
 	registeredCategoryRoles := []db.Role{}
+	rolePtrs := []*string{&guild.GenericCategoryRoleID, &guild.FeatCategoryRoleID, &guild.FixCategoryRoleID, &guild.ChoreCategoryRoleID}
 	for i, role := range categoryRoles {
-		registeredRole, err := registerRole(s, event.Guild.ID, role, db.RoleKindCategory)
+		registeredRole, err := registerRole(s, event.Guild.ID, &role, db.RoleKindCategory)
 		if err != nil {
 			return err
 		}
 		registeredCategoryRoles = append(registeredCategoryRoles, registeredRole)
-		if i == 0 {
-			guild.DefaultCategoryRoleID = registeredRole.ID
-		}
+		*rolePtrs[i] = registeredRole.ID
 	}
 
 	// register all priorities
 	registeredPriorityRoles := []db.Role{}
+	rolePtrs = []*string{&guild.LowPriorityRoleID, &guild.NormalPriorityRoleID, &guild.ImportantPriorityRoleID, &guild.CriticalPriorityRoleID}
 	for i, role := range priorityRoles {
-		registeredRole, err := registerRole(s, event.Guild.ID, role, db.RoleKindPriority)
+		registeredRole, err := registerRole(s, event.Guild.ID, &role, db.RoleKindPriority)
 		if err != nil {
 			return err
 		}
 		registeredPriorityRoles = append(registeredPriorityRoles, registeredRole)
-		if i == 3 { // 3 == NORMAL
-			guild.DefaultPriorityRoleID = registeredRole.ID
-		}
+		*rolePtrs[i] = registeredRole.ID
 	}
 
-	registeredNobodyRole, err := registerRole(s, event.Guild.ID, nobodyRole, db.RoleKindNobody)
+	registeredNobodyRole, err := registerRole(s, event.Guild.ID, &nobodyRole, db.RoleKindNobody)
 	if err != nil {
 		return err
 	}
 	guild.NobodyRoleID = registeredNobodyRole.ID
 
-	registeredDiscussionRole, err := registerRole(s, event.Guild.ID, discussionRole, db.RoleKindDiscussion)
+	registeredDiscussionRole, err := registerRole(s, event.Guild.ID, &discussionRole, db.RoleKindDiscussion)
 	if err != nil {
 		return err
 	}

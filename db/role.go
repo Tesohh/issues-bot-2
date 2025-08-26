@@ -10,8 +10,10 @@ const (
 )
 
 type Role struct {
-	ID   string   `gorm:"primarykey"`
-	Kind RoleKind `gorm:"check:kind in ('priority', 'category', 'discussion', 'nobody')"`
+	ID    string   `gorm:"primarykey"`
+	Kind  RoleKind `gorm:"check:kind in ('priority', 'category', 'discussion', 'nobody')"`
+	Key   string
+	Emoji string
 
 	GuildID string
 }
