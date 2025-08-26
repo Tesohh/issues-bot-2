@@ -152,7 +152,11 @@ var New = slash.Command{
 		if err != nil {
 			return fmt.Errorf("error in thread creation: %w", err)
 		}
-		_ = thread
+
+		err = logic.InitIssueThread(issue, &guild, thread, s, i)
+		if err != nil {
+			return err
+		}
 
 		return nil
 	},
