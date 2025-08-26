@@ -34,11 +34,6 @@ var New = slash.Command{
 				Type:        dg.ApplicationCommandOptionRole,
 			},
 			{
-				Name:        "discussion",
-				Description: "is this a discussion?",
-				Type:        dg.ApplicationCommandOptionBoolean,
-			},
-			{
 				Name:        "tags",
 				Description: "comma separated tags (eg. `tag1, tag2`)",
 				Type:        dg.ApplicationCommandOptionString,
@@ -47,6 +42,11 @@ var New = slash.Command{
 				Name:        "assign",
 				Description: "select user to assign this to. if you want to assign this to nobody, use the `nobody` flag",
 				Type:        dg.ApplicationCommandOptionUser,
+			},
+			{
+				Name:        "discussion",
+				Description: "is this a discussion?",
+				Type:        dg.ApplicationCommandOptionBoolean,
 			},
 			{
 				Name:        "nobody",
