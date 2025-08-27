@@ -1,7 +1,8 @@
 package db
 
 type Project struct {
-	ID      uint `gorm:"primarykey"`
+	ID uint `gorm:"primarykey"`
+
 	Name    string
 	Prefix  string
 	RepoURL string
