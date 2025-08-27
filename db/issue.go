@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	"issues/v2/helper"
 	"strings"
 	"time"
 )
@@ -86,38 +87,26 @@ func (issue *Issue) ChannelName() string {
 // - [`🟩 #25`](https://example.com)
 // this outputs a 84 character string, considering the code is 4 digits long
 // Requires issue.Project.GuildID to be set, or else the link will be broken
-func (issue *Issue) PrettyLink() string {
-	return fmt.Sprintf("[`%s #%d`](https://discord.com/channels/%s/%s)",
+func (issue *Issue) PrettyLink(longestCodeLen int) string {
+	codePaddingFmt := fmt.Sprintf("%%0%dd", longestCodeLen)
+	codeFmt := fmt.Sprintf(codePaddingFmt, *issue.Code)
+	return fmt.Sprintf("[`%s #%s`](https://discord.com/channels/%s/%s)",
 		IssueStatusIcons[issue.Status],
-		*issue.Code,
+		codeFmt,
 		issue.Project.GuildID,
 		issue.ThreadID,
 	)
 }
 
-func strCut(str string, maxLen int) string {
-	if maxLen == 0 {
-		return str
-	}
-
-	cut := str
-	if len(str) > maxLen {
-		cut = cut[:maxLen-1]
-		cut += "…"
-	}
-
-	return cut
-}
-
 func (issue *Issue) CutTitle(maxTitleLength int) string {
-	return strCut(issue.Title, maxTitleLength)
+	return helper.StrTrunc(issue.Title, maxTitleLength)
 }
 
 func (issue *Issue) PrettyTags(maxTags int, maxTagLen int) string {
 	tags := issue.ParseTags()
 	str := ""
 	for _, tag := range tags[:min(len(tags), maxTags)] {
-		str += fmt.Sprintf("`+%s` ", strCut(tag, maxTagLen))
+		str += fmt.Sprintf("`+%s` ", helper.StrTrunc(tag, maxTagLen))
 	}
 	str = str[:len(str)-1]
 	return str

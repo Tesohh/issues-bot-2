@@ -3,6 +3,7 @@ package dataview
 import (
 	"fmt"
 	"issues/v2/db"
+	"issues/v2/helper"
 	"log/slog"
 
 	dg "github.com/bwmarrin/discordgo"
@@ -29,9 +30,17 @@ func MakeIssuesViewGithubStyle(issues []db.Issue, state ProjectViewState, option
 		dg.TextDisplay{Content: title + subtitle},
 	}
 
+	longestCode := 0
+	for _, issue := range issues {
+		length := helper.DigitsLen(int(*issue.Code))
+		if length > longestCode {
+			longestCode = length
+		}
+	}
+
 	content := ""
 	for _, issue := range issues {
-		line := fmt.Sprintf("\n - %s %s %s %s", issue.PrettyLink(), issue.RoleEmojis(), issue.CutTitle(30), issue.PrettyTags(3, 7))
+		line := fmt.Sprintf("\n - %s %s %s %s", issue.PrettyLink(longestCode), issue.RoleEmojis(), issue.CutTitle(30), issue.PrettyTags(3, 7))
 		content += line
 		slog.Debug("length of line", "len", len(line))
 		//  TODO: trim text to make sure it is acertain len

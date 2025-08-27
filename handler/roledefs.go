@@ -70,7 +70,7 @@ var ImportantPriorityRole = roleDef{
 	Color: (0xffba08),
 }
 var CriticalPriorityRole = roleDef{
-	Emoji: "🛑",
+	Emoji: "🛑", //‼️
 	Key:   "critical",
 	Color: (0xd00000),
 }

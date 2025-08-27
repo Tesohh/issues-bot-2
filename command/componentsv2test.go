@@ -4,6 +4,7 @@ import (
 	"issues/v2/dataview"
 	"issues/v2/db"
 	"issues/v2/slash"
+	"math/rand/v2"
 
 	dg "github.com/bwmarrin/discordgo"
 )
@@ -93,12 +94,12 @@ var ComponentsV2Test = slash.Command{
 		_ = container
 
 		sampleIssues := []db.Issue{}
-		for range 15 {
+		for i := range 15 {
 			sampleIssues = append(sampleIssues,
 				db.Issue{
-					ID:             3,
-					Code:           slash.Ptr(uint(3)),
-					Status:         db.IssueStatusTodo,
+					ID:             uint(i + 1),
+					Code:           slash.Ptr(uint(i + 1)),
+					Status:         db.IssueStatus(rand.Int32N(4)),
 					Tags:           "gut, besser, gosser",
 					Title:          "lorem ipsum dolor sit amet",
 					CategoryRoleID: "1404946100275777556",
