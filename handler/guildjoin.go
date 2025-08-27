@@ -71,7 +71,7 @@ func registerRoles(s *discordgo.Session, event *discordgo.GuildCreate, guild *db
 	// register all categories
 	registeredCategoryRoles := []db.Role{}
 	rolePtrs := []*string{&guild.GenericCategoryRoleID, &guild.FeatCategoryRoleID, &guild.FixCategoryRoleID, &guild.ChoreCategoryRoleID}
-	for i, role := range categoryRoles {
+	for i, role := range CategoryRoles {
 		registeredRole, err := registerRole(s, event.Guild.ID, &role, db.RoleKindCategory)
 		if err != nil {
 			return err
@@ -83,7 +83,7 @@ func registerRoles(s *discordgo.Session, event *discordgo.GuildCreate, guild *db
 	// register all priorities
 	registeredPriorityRoles := []db.Role{}
 	rolePtrs = []*string{&guild.LowPriorityRoleID, &guild.NormalPriorityRoleID, &guild.ImportantPriorityRoleID, &guild.CriticalPriorityRoleID}
-	for i, role := range priorityRoles {
+	for i, role := range PriorityRoles {
 		registeredRole, err := registerRole(s, event.Guild.ID, &role, db.RoleKindPriority)
 		if err != nil {
 			return err
@@ -92,13 +92,13 @@ func registerRoles(s *discordgo.Session, event *discordgo.GuildCreate, guild *db
 		*rolePtrs[i] = registeredRole.ID
 	}
 
-	registeredNobodyRole, err := registerRole(s, event.Guild.ID, &nobodyRole, db.RoleKindNobody)
+	registeredNobodyRole, err := registerRole(s, event.Guild.ID, &NobodyRole, db.RoleKindNobody)
 	if err != nil {
 		return err
 	}
 	guild.NobodyRoleID = registeredNobodyRole.ID
 
-	registeredDiscussionRole, err := registerRole(s, event.Guild.ID, &discussionRole, db.RoleKindDiscussion)
+	registeredDiscussionRole, err := registerRole(s, event.Guild.ID, &DiscussionRole, db.RoleKindDiscussion)
 	if err != nil {
 		return err
 	}
