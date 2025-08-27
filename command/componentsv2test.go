@@ -91,45 +91,15 @@ var ComponentsV2Test = slash.Command{
 				},
 			}
 
-		sampleIssues := []db.Issue{
-			{
-				ID:             1,
-				Code:           slash.Ptr(uint(1)),
-				Status:         db.IssueStatusTodo,
-				Title:          "issue #1",
-				CategoryRoleID: "1404946100275777556",
-				PriorityRoleID: "1404946108597145823",
-				Project:        db.Project{GuildID: "1404937966853427390"},
-				ThreadID:       "1409194601516105808",
-			},
-			{
-				ID:             2,
-				Code:           slash.Ptr(uint(2)),
-				Status:         db.IssueStatusKilled,
-				Title:          "issue #2",
-				CategoryRoleID: "1404946100275777556",
-				PriorityRoleID: "1404946108597145823",
-				Project:        db.Project{GuildID: "1404937966853427390"},
-				ThreadID:       "1409194601516105808",
-			},
-			{
-				ID:             3,
-				Code:           slash.Ptr(uint(3)),
-				Status:         db.IssueStatusWorking,
-				Title:          "issue #3",
-				CategoryRoleID: "1404946100275777556",
-				PriorityRoleID: "1404946111998984263",
-				Project:        db.Project{GuildID: "1404937966853427390"},
-				ThreadID:       "1409194601516105808",
-			},
-		}
-		for range 20 {
+		sampleIssues := []db.Issue{}
+		for range 15 {
 			sampleIssues = append(sampleIssues,
 				db.Issue{
 					ID:             3,
 					Code:           slash.Ptr(uint(3)),
-					Status:         db.IssueStatusWorking,
-					Title:          "issue #3",
+					Status:         db.IssueStatusTodo,
+					Tags:           "gut, besser, gosser",
+					Title:          "lorem ipsum dolor sit amet",
 					CategoryRoleID: "1404946100275777556",
 					PriorityRoleID: "1404946111998984263",
 					Project:        db.Project{GuildID: "1404937966853427390"},
@@ -137,15 +107,8 @@ var ComponentsV2Test = slash.Command{
 				})
 		}
 
-		view := dataview.MakeIssuesView(sampleIssues, dataview.IssueFilter{}, dataview.IssuesViewOptions{
-			TitleOverride:         "",
-			DefaultPriorityRoleID: "1404946108597145823",
-			GroupIssuesBy:         dataview.GroupIssuesByHybrid,
-		})
-		view2 := dataview.MakeIssuesView(sampleIssues, dataview.IssueFilter{}, dataview.IssuesViewOptions{
-			TitleOverride:         "",
-			DefaultPriorityRoleID: "1404946108597145823",
-			GroupIssuesBy:         dataview.GroupIssuesByHybrid,
+		view := dataview.MakeIssuesViewGithubStyle(sampleIssues, dataview.ProjectViewState{}, dataview.IssuesViewGithubStyleOptions{
+			TitleOverride: "TESTLIST...",
 		})
 		buttons := dg.ActionsRow{
 			Components: []dg.MessageComponent{
@@ -155,6 +118,6 @@ var ComponentsV2Test = slash.Command{
 				dg.Button{Label: "My issues", Style: dg.SuccessButton, CustomID: "show-my-issues"},
 			},
 		}
-		return slash.ReplyWithComponents(s, i, false, container, view, view2, buttons)
+		return slash.ReplyWithComponents(s, i, false, container, view, buttons)
 	},
 }

@@ -2,10 +2,8 @@ package dataview
 
 import "time"
 
-const MaxIssuesPerPage = 15
-
 // used for keeping information on the autolist display
-type ProjectState struct {
+type ProjectViewState struct {
 	ProjectID uint
 
 	CurrentPage int
@@ -18,4 +16,4 @@ type ProjectState struct {
 }
 
 // maps MessageIDs to ProjectStates
-var ProjectStates = map[string]ProjectState{}
+var ProjectViewStates = map[string]ProjectViewState{}

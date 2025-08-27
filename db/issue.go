@@ -61,6 +61,14 @@ type Issue struct {
 	MessageID string
 }
 
+func (issue *Issue) ParseTags() []string {
+	tags := []string{}
+	for rawTag := range strings.SplitSeq(issue.Tags, ",") {
+		tags = append(tags, strings.Trim(rawTag, " "))
+	}
+	return tags
+}
+
 // Requires issue.Project.Prefix to be set, or else the prefix will be ???
 func (issue *Issue) HumanCode() string {
 	projectName := "???"
@@ -75,8 +83,42 @@ func (issue *Issue) ChannelName() string {
 	return fmt.Sprintf("%s %s %s", issue.HumanCode(), IssueStatusIcons[issue.Status], issue.Title)
 }
 
-// - [`🟩 #25`](https://example.com) add Gòrni
+// - [`🟩 #25`](https://example.com)
+// this outputs a 84 character string, considering the code is 4 digits long
 // Requires issue.Project.GuildID to be set, or else the link will be broken
 func (issue *Issue) PrettyLink() string {
-	return fmt.Sprintf("[`%s #%d`](https://discord.com/channels/%s/%s) %s", IssueStatusIcons[issue.Status], *issue.Code, issue.Project.GuildID, issue.ThreadID, issue.Title)
+	return fmt.Sprintf("[`%s #%d`](https://discord.com/channels/%s/%s)",
+		IssueStatusIcons[issue.Status],
+		*issue.Code,
+		issue.Project.GuildID,
+		issue.ThreadID,
+	)
+}
+
+func strCut(str string, maxLen int) string {
+	if maxLen == 0 {
+		return str
+	}
+
+	cut := str
+	if len(str) > maxLen {
+		cut = cut[:maxLen-1]
+		cut += "…"
+	}
+
+	return cut
+}
+
+func (issue *Issue) CutTitle(maxTitleLength int) string {
+	return strCut(issue.Title, maxTitleLength)
+}
+
+func (issue *Issue) PrettyTags(maxTags int, maxTagLen int) string {
+	tags := issue.ParseTags()
+	str := ""
+	for _, tag := range tags[:min(len(tags), maxTags)] {
+		str += fmt.Sprintf("`+%s` ", strCut(tag, maxTagLen))
+	}
+	str = str[:len(str)-1]
+	return str
 }
