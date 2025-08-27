@@ -134,10 +134,11 @@ var New = slash.Command{
 			PriorityRoleID:  priorityRoleID,
 		}
 
-		issue, err = logic.AddIssueToDB(issue)
+		code, err := logic.GetIssueCode(issue)
 		if err != nil {
 			return fmt.Errorf("error in issue db insertion: %w", err)
 		}
+		issue.Code = &code
 
 		slash.ReplyWithEmbed(s, i, dg.MessageEmbed{
 			Title: title,
@@ -154,6 +155,11 @@ var New = slash.Command{
 		}
 
 		err = logic.InitIssueThread(issue, &guild, thread, s, i)
+		if err != nil {
+			return err
+		}
+
+		err = db.Issues.Create(db.Ctx, issue)
 		if err != nil {
 			return err
 		}

@@ -17,11 +17,6 @@ func CreateThreadFromIssue(issue *db.Issue, s *dg.Session, i *dg.Interaction) (*
 	}
 	issue.ThreadID = thread.ID
 
-	_, err = db.Issues.Where("id = ?", issue.ID).Update(db.Ctx, "thread_id", thread.ID)
-	if err != nil {
-		return nil, err
-	}
-
 	err = s.ChannelMessageDelete(issue.Project.IssuesInputChannelID, thread.ID)
 	if err != nil {
 		slog.Warn("couldn't delete thread start message. no big deal", "err", err)
