@@ -26,57 +26,65 @@ func (role roleDef) ToDiscordRoleParams() *discordgo.RoleParams {
 	}
 }
 
-var categoryRoles = []roleDef{
-	{
-		Emoji: "🧻",
-		Key:   "generic",
-		Color: (0xfffffc),
-	},
-	{
-		Emoji: "💎",
-		Key:   "feat",
-		Color: (0x00afb9),
-	},
-	{
-		Emoji: "🐞",
-		Key:   "fix",
-		Color: (0xD63830),
-	},
-	{
-		Emoji: "🧹",
-		Key:   "chore",
-		Color: (0xFF7F50),
-	},
-}
-var priorityRoles = []roleDef{
-	{
-		Emoji: "⏬",
-		Key:   "low",
-		Color: (0x0077b6),
-	},
-	{
-		Emoji: "📗",
-		Key:   "normal",
-		Color: (0x81B29A),
-	},
-	{
-		Emoji: "⚠️",
-		Key:   "important",
-		Color: (0xffba08),
-	},
-	{
-		Emoji: "🛑",
-		Key:   "critical",
-		Color: (0xd00000),
-	},
+var GenericCategoryRole = roleDef{
+	Emoji: "🧻",
+	Key:   "generic",
+	Color: (0xfffffc),
 }
 
-var discussionRole = roleDef{
+var FeatureCategoryRole = roleDef{
+	Emoji: "💎",
+	Key:   "feat",
+	Color: (0x00afb9),
+}
+
+var FixCategoryRole = roleDef{
+	Emoji: "🐞",
+	Key:   "fix",
+	Color: (0xD63830),
+}
+
+var ChoreCategoryRole = roleDef{
+	Emoji: "🧹",
+	Key:   "chore",
+	Color: (0xFF7F50),
+}
+
+var CategoryRoles = []roleDef{
+	GenericCategoryRole, FeatureCategoryRole, FixCategoryRole, ChoreCategoryRole,
+}
+
+var LowPriorityRole = roleDef{
+	Emoji: "⏬",
+	Key:   "low",
+	Color: (0x0077b6),
+}
+var NormalPriorityRole = roleDef{
+	Emoji: "📗",
+	Key:   "normal",
+	Color: (0x81B29A),
+}
+var ImportantPriorityRole = roleDef{
+	Emoji: "⚠️",
+	Key:   "important",
+	Color: (0xffba08),
+}
+var CriticalPriorityRole = roleDef{
+	Emoji: "🛑",
+	Key:   "critical",
+	Color: (0xd00000),
+}
+
+var PriorityRoles = []roleDef{
+	LowPriorityRole, NormalPriorityRole, ImportantPriorityRole, CriticalPriorityRole,
+}
+
+var DiscussionRole = roleDef{
 	Emoji: "💬",
 	Key:   "discussion",
 	Color: (0xCC4BC2),
 }
-var nobodyRole = roleDef{
+var NobodyRole = roleDef{
 	Emoji: "❔",
 	Key:   "nobody",
 	Color: (0xdcdcdc), // gainsboro
