@@ -3,6 +3,7 @@ package dataview
 import (
 	"fmt"
 	"issues/v2/db"
+	"log/slog"
 
 	dg "github.com/bwmarrin/discordgo"
 )
@@ -11,7 +12,7 @@ type IssuesViewGithubStyleOptions struct {
 	TitleOverride string // if set, will replace the default "Issues (filter)" title
 }
 
-const MaxIssuesPerPage = 15
+const MaxIssuesPerPage = 20
 
 func MakeIssuesViewGithubStyle(issues []db.Issue, state ProjectViewState, options IssuesViewGithubStyleOptions) dg.Container {
 	title := "# Issues"
@@ -30,7 +31,9 @@ func MakeIssuesViewGithubStyle(issues []db.Issue, state ProjectViewState, option
 
 	content := ""
 	for _, issue := range issues {
-		content += fmt.Sprintf("\n - %s %s %s", issue.PrettyLink(), issue.CutTitle(3), issue.PrettyTags(3, 3))
+		line := fmt.Sprintf("\n - %s %s %s %s", issue.PrettyLink(), issue.RoleEmojis(), issue.CutTitle(30), issue.PrettyTags(3, 7))
+		content += line
+		slog.Debug("length of line", "len", len(line))
 		//  TODO: trim text to make sure it is acertain len
 		//  TODO: add all info (tags, priority and category emoji)
 	}

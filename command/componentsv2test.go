@@ -90,6 +90,7 @@ var ComponentsV2Test = slash.Command{
 					},
 				},
 			}
+		_ = container
 
 		sampleIssues := []db.Issue{}
 		for range 15 {
@@ -101,23 +102,36 @@ var ComponentsV2Test = slash.Command{
 					Tags:           "gut, besser, gosser",
 					Title:          "lorem ipsum dolor sit amet",
 					CategoryRoleID: "1404946100275777556",
+					CategoryRole:   db.Role{Emoji: "💎"},
 					PriorityRoleID: "1404946111998984263",
+					PriorityRole:   db.Role{Emoji: "⚠️"},
 					Project:        db.Project{GuildID: "1404937966853427390"},
 					ThreadID:       "1409194601516105808",
 				})
 		}
 
 		view := dataview.MakeIssuesViewGithubStyle(sampleIssues, dataview.ProjectViewState{}, dataview.IssuesViewGithubStyleOptions{
-			TitleOverride: "TESTLIST...",
+			TitleOverride: "AutoList™️ for LOREM",
 		})
-		buttons := dg.ActionsRow{
+		arrowbuttons := dg.ActionsRow{
 			Components: []dg.MessageComponent{
-				// dg.Button{Label: "", Style: dg.SecondaryButton, CustomID: "show-my-issues"},
-				dg.Button{Label: "Group by Hybrid", Style: dg.PrimaryButton, Emoji: &dg.ComponentEmoji{Name: "🔁"}, CustomID: "cycle-group-by"},
-				dg.Button{Label: "Show completed", Style: dg.PrimaryButton, CustomID: "show-completed"},
+				dg.Button{Emoji: &dg.ComponentEmoji{Name: "⏮️"}, Style: dg.SecondaryButton, Disabled: true, CustomID: "bigleft"},
+				dg.Button{Emoji: &dg.ComponentEmoji{Name: "⬅️"}, Style: dg.SecondaryButton, CustomID: "left"},
+				dg.Button{Emoji: &dg.ComponentEmoji{Name: "➡️"}, Style: dg.SecondaryButton, CustomID: "right"},
+				dg.Button{Emoji: &dg.ComponentEmoji{Name: "⏭️"}, Style: dg.SecondaryButton, CustomID: "bigright"},
 				dg.Button{Label: "My issues", Style: dg.SuccessButton, CustomID: "show-my-issues"},
 			},
 		}
-		return slash.ReplyWithComponents(s, i, false, container, view, buttons)
+		queryButtons := dg.ActionsRow{
+			Components: []dg.MessageComponent{
+				dg.Button{Label: "Show closed", Style: dg.SecondaryButton, CustomID: "showclosed"},
+				dg.Button{Label: "Sort by code", Style: dg.SecondaryButton, CustomID: "sort-by:code"},
+				dg.Button{Label: "Order asc", Style: dg.SecondaryButton, CustomID: "order:asc"},
+				dg.Button{Label: "Filters...", Style: dg.SecondaryButton, CustomID: "filters"},
+				dg.Button{Label: "Query...", Style: dg.SecondaryButton, CustomID: "query"},
+			},
+		}
+		// url.ParseQuery("issuelistgoto?message=123123&page=2")
+		return slash.ReplyWithComponents(s, i, false, queryButtons, view, arrowbuttons)
 	},
 }

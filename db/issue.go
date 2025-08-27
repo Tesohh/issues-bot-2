@@ -122,3 +122,8 @@ func (issue *Issue) PrettyTags(maxTags int, maxTagLen int) string {
 	str = str[:len(str)-1]
 	return str
 }
+
+// Requires PriorityRole and CategoryRole to be set
+func (issue *Issue) RoleEmojis() string {
+	return fmt.Sprintf("%s %s", issue.PriorityRole.Emoji, issue.CategoryRole.Emoji)
+}
