@@ -18,5 +18,6 @@ type Project struct {
 
 	GuildID string
 
-	Issues []Issue
+	ProjectViewState []ProjectViewState
+	Issues           []Issue
 }
