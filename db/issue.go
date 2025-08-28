@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-type IssueStatus uint8
+type IssueStatus int
 
 const (
 	IssueStatusTodo    IssueStatus = 0
@@ -37,6 +37,7 @@ const (
 type Issue struct {
 	ID          uint `gorm:"primarykey"`
 	CreatedAt   time.Time
+	UpdatedAt   time.Time
 	CompletedAt sql.NullTime
 
 	Code   *uint // for Tasks this will be nil

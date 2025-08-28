@@ -1,7 +1,11 @@
 package db
 
+import "time"
+
 type Project struct {
-	ID uint `gorm:"primarykey"`
+	ID        uint `gorm:"primarykey"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
 
 	Name    string
 	Prefix  string

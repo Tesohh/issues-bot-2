@@ -1,7 +1,11 @@
 package db
 
+import "time"
+
 type Guild struct {
-	ID string `gorm:"primarykey"`
+	ID        string `gorm:"primarykey"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
 
 	GenericCategoryRoleID string
 	FeatCategoryRoleID    string

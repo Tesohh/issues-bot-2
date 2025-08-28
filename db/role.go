@@ -1,5 +1,7 @@
 package db
 
+import "time"
+
 type RoleKind string
 
 const (
@@ -10,7 +12,9 @@ const (
 )
 
 type Role struct {
-	ID    string   `gorm:"primarykey"`
+	ID        string `gorm:"primarykey"`
+	CreatedAt time.Time
+
 	Kind  RoleKind `gorm:"check:kind in ('priority', 'category', 'discussion', 'nobody')"`
 	Key   string
 	Emoji string

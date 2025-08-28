@@ -126,7 +126,25 @@ var ComponentsV2Test = slash.Command{
 				})
 		}
 
-		view := dataview.MakeIssuesViewGithubStyle(sampleIssues, dataview.ProjectViewState{}, dataview.IssuesViewGithubStyleOptions{
+		db.ProjectViewStates.Create(db.Ctx, &db.ProjectViewState{
+			MessageID:   gofakeit.AdverbDegree() + gofakeit.Email() + gofakeit.IPv4Address(),
+			ProjectID:   1,
+			CurrentPage: 0,
+			Filter: db.IssueFilter{
+				Statuses:        []db.IssueStatus{db.IssueStatusDone},
+				Title:           "the",
+				Tags:            []string{"gut"},
+				PriorityRoleIDs: []string{"234234"},
+				CategoryRoleIDs: []string{"923482398", "23498728937"},
+				AssigneeIDs:     []string{"23489237894"},
+			},
+			Sorter: db.IssueSorter{
+				SortBy:    db.IssueSortByDate,
+				SortOrder: db.SortOrderAscending,
+			},
+		})
+
+		view := dataview.MakeIssuesViewGithubStyle(sampleIssues, &db.ProjectViewState{}, dataview.IssuesViewGithubStyleOptions{
 			TitleOverride: "AutoList™️ for LOREM",
 		})
 		arrowbuttons := dg.ActionsRow{

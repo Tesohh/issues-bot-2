@@ -16,6 +16,7 @@ var Users gorm.Interface[User]
 var Projects gorm.Interface[Project]
 var Issues gorm.Interface[Issue]
 var Relationships gorm.Interface[Relationship]
+var ProjectViewStates gorm.Interface[ProjectViewState]
 
 var Ctx = context.Background()
 
@@ -26,7 +27,7 @@ func Connect(path string) (*gorm.DB, error) {
 		return nil, err
 	}
 
-	db.AutoMigrate(&Role{}, &Guild{}, &User{}, &Project{}, &Issue{}, &Relationship{})
+	db.AutoMigrate(&Role{}, &Guild{}, &User{}, &Project{}, &Issue{}, &Relationship{}, &ProjectViewState{})
 	Conn = db
 
 	Roles = gorm.G[Role](Conn)
@@ -35,6 +36,7 @@ func Connect(path string) (*gorm.DB, error) {
 	Projects = gorm.G[Project](Conn)
 	Issues = gorm.G[Issue](Conn)
 	Relationships = gorm.G[Relationship](Conn)
+	ProjectViewStates = gorm.G[ProjectViewState](Conn)
 
 	slog.Info("Connected to db")
 	return db, nil

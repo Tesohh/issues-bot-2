@@ -18,7 +18,7 @@ const MaxTitleLength = 70
 const MaxTagsCount = 3
 const MaxTagLength = 8
 
-func MakeIssuesViewGithubStyle(issues []db.Issue, state ProjectViewState, options IssuesViewGithubStyleOptions) dg.Container {
+func MakeIssuesViewGithubStyle(issues []db.Issue, state *db.ProjectViewState, options IssuesViewGithubStyleOptions) dg.Container {
 	title := "# Issues"
 	if len(options.TitleOverride) > 0 {
 		title = "# " + options.TitleOverride
