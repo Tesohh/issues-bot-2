@@ -14,6 +14,9 @@ type IssuesViewGithubStyleOptions struct {
 }
 
 const MaxIssuesPerPage = 20
+const MaxTitleLength = 70
+const MaxTagsCount = 3
+const MaxTagLength = 9
 
 func MakeIssuesViewGithubStyle(issues []db.Issue, state ProjectViewState, options IssuesViewGithubStyleOptions) dg.Container {
 	title := "# Issues"
@@ -40,7 +43,14 @@ func MakeIssuesViewGithubStyle(issues []db.Issue, state ProjectViewState, option
 
 	content := ""
 	for _, issue := range issues {
-		line := fmt.Sprintf("\n - %s %s %s %s", issue.PrettyLink(longestCode), issue.RoleEmojis(), issue.CutTitle(30), issue.PrettyTags(3, 7))
+		tags := issue.PrettyTags(MaxTagsCount, MaxTagLength)
+		line := fmt.Sprintf("\n - %s %s %s %s",
+			issue.PrettyLink(longestCode),
+			issue.RoleEmojis(),
+			issue.CutTitle(MaxTitleLength-len(tags)),
+			tags,
+		)
+
 		content += line
 		slog.Debug("length of line", "len", len(line))
 		//  TODO: trim text to make sure it is acertain len

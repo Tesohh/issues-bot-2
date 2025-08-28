@@ -65,7 +65,10 @@ type Issue struct {
 func (issue *Issue) ParseTags() []string {
 	tags := []string{}
 	for rawTag := range strings.SplitSeq(issue.Tags, ",") {
-		tags = append(tags, strings.Trim(rawTag, " "))
+		trim := strings.Trim(rawTag, " ")
+		if len(trim) > 0 {
+			tags = append(tags, trim)
+		}
 	}
 	return tags
 }
@@ -108,7 +111,9 @@ func (issue *Issue) PrettyTags(maxTags int, maxTagLen int) string {
 	for _, tag := range tags[:min(len(tags), maxTags)] {
 		str += fmt.Sprintf("`+%s` ", helper.StrTrunc(tag, maxTagLen))
 	}
-	str = str[:len(str)-1]
+	if len(str) > 0 {
+		str = str[:len(str)-1]
+	}
 	return str
 }
 

@@ -1,11 +1,14 @@
 package command
 
 import (
+	"fmt"
 	"issues/v2/dataview"
 	"issues/v2/db"
 	"issues/v2/slash"
 	"math/rand/v2"
+	"strings"
 
+	"github.com/brianvoe/gofakeit/v7"
 	dg "github.com/bwmarrin/discordgo"
 )
 
@@ -94,18 +97,29 @@ var ComponentsV2Test = slash.Command{
 		_ = container
 
 		sampleIssues := []db.Issue{}
-		for i := range 15 {
+		for i := range dataview.MaxIssuesPerPage {
 			sampleIssues = append(sampleIssues,
 				db.Issue{
-					ID:             uint(i + 1),
-					Code:           slash.Ptr(uint(i + 1)),
-					Status:         db.IssueStatus(rand.Int32N(4)),
-					Tags:           "gut, besser, gosser",
-					Title:          "lorem ipsum dolor sit amet",
+					ID:     uint(i + 1),
+					Code:   slash.Ptr(uint(i + 1)),
+					Status: db.IssueStatus(rand.Int32N(4)),
+					Tags: strings.ToLower(
+						gofakeit.RandomString([]string{
+							fmt.Sprintf("%s, %s, %s, %s", gofakeit.HackerNoun(), gofakeit.HackerNoun(), gofakeit.HackerNoun(), gofakeit.HackerNoun()),
+							fmt.Sprintf("%s, %s, %s", gofakeit.HackerNoun(), gofakeit.HackerNoun(), gofakeit.HackerNoun()),
+							fmt.Sprintf("%s, %s", gofakeit.AppVersion(), gofakeit.HackerNoun()),
+							fmt.Sprintf("%s, %s", gofakeit.HackerNoun(), gofakeit.HackerNoun()),
+							fmt.Sprintf("%s", gofakeit.HackerNoun()),
+							fmt.Sprintf("%s", gofakeit.HackerAbbreviation()),
+							fmt.Sprintf("%s", gofakeit.AppVersion()),
+							"",
+						}),
+					),
+					Title:          fmt.Sprintf("%s the %s %s and the %s", gofakeit.HackerVerb(), gofakeit.HackerAdjective(), gofakeit.HackerNoun(), gofakeit.HackerNoun()),
 					CategoryRoleID: "1404946100275777556",
-					CategoryRole:   db.Role{Emoji: "💎"},
+					CategoryRole:   db.Role{Emoji: gofakeit.RandomString([]string{"🧻", "💎", "🐞", "🧹"})},
 					PriorityRoleID: "1404946111998984263",
-					PriorityRole:   db.Role{Emoji: "⚠️"},
+					PriorityRole:   db.Role{Emoji: gofakeit.RandomString([]string{"⏬", "📗", "⚠️", "🛑"})},
 					Project:        db.Project{GuildID: "1404937966853427390"},
 					ThreadID:       "1409194601516105808",
 				})
@@ -132,6 +146,7 @@ var ComponentsV2Test = slash.Command{
 				dg.Button{Label: "Query...", Style: dg.SecondaryButton, CustomID: "query"},
 			},
 		}
+
 		// url.ParseQuery("issuelistgoto?message=123123&page=2")
 		return slash.ReplyWithComponents(s, i, false, queryButtons, view, arrowbuttons)
 	},
