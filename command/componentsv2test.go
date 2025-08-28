@@ -105,6 +105,7 @@ var ComponentsV2Test = slash.Command{
 					Status: db.IssueStatus(rand.Int32N(4)),
 					Tags: strings.ToLower(
 						gofakeit.RandomString([]string{
+							fmt.Sprintf("%s, %s, %s, %s, %s", gofakeit.HackerNoun(), gofakeit.HackerNoun(), gofakeit.HackerNoun(), gofakeit.HackerNoun(), gofakeit.HackerNoun()),
 							fmt.Sprintf("%s, %s, %s, %s", gofakeit.HackerNoun(), gofakeit.HackerNoun(), gofakeit.HackerNoun(), gofakeit.HackerNoun()),
 							fmt.Sprintf("%s, %s, %s", gofakeit.HackerNoun(), gofakeit.HackerNoun(), gofakeit.HackerNoun()),
 							fmt.Sprintf("%s, %s", gofakeit.AppVersion(), gofakeit.HackerNoun()),

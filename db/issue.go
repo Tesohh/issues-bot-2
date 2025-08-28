@@ -111,7 +111,9 @@ func (issue *Issue) PrettyTags(maxTags int, maxTagLen int) string {
 	for _, tag := range tags[:min(len(tags), maxTags)] {
 		str += fmt.Sprintf("`+%s` ", helper.StrTrunc(tag, maxTagLen))
 	}
-	if len(str) > 0 {
+	if len(tags) > maxTags {
+		str += fmt.Sprintf("`[+%d]`", len(tags)-maxTags)
+	} else if len(str) > 0 {
 		str = str[:len(str)-1]
 	}
 	return str

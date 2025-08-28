@@ -16,7 +16,7 @@ type IssuesViewGithubStyleOptions struct {
 const MaxIssuesPerPage = 20
 const MaxTitleLength = 70
 const MaxTagsCount = 3
-const MaxTagLength = 9
+const MaxTagLength = 8
 
 func MakeIssuesViewGithubStyle(issues []db.Issue, state ProjectViewState, options IssuesViewGithubStyleOptions) dg.Container {
 	title := "# Issues"
