@@ -47,9 +47,9 @@ func main() {
 	slog.Info("adding handlers...")
 
 	session.AddHandler(handler.GuildJoinHandler)
-	session.AddHandler(executeCommandHandler)
+	session.AddHandler(handler.Router)
 
-	err = registerCommands(session)
+	err = handler.RegisterCommands(session)
 	if err != nil {
 		slog.Error(err.Error())
 		return
@@ -64,7 +64,7 @@ func main() {
 
 	if os.Getenv("DISCORD_ENVIRONMENT") == "dev" {
 		log.Println("Removing commands...")
-		for id, cmds := range registeredCommands {
+		for id, cmds := range handler.RegisteredCommands {
 			for _, cmd := range cmds {
 				err := session.ApplicationCommandDelete(session.State.User.ID, id, cmd.ID)
 				if err != nil {

@@ -1,4 +1,4 @@
-package main
+package handler
 
 import (
 	"log/slog"
@@ -6,7 +6,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-var executeCommandHandler = func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func Command(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if c, ok := commands[i.ApplicationCommandData().Name]; ok {
 		if c.Disabled {
 			slog.Warn("user somehow managed to execute a disabled command", slog.String("command", c.Name))

@@ -1,4 +1,4 @@
-package main
+package handler
 
 import (
 	"fmt"
@@ -16,22 +16,22 @@ var commands = map[string]*slash.Command{
 	"new":                &command.New,
 	"components_v2_test": &command.ComponentsV2Test,
 }
-var registeredCommands = make(map[string][]*discordgo.ApplicationCommand, 0)
+var RegisteredCommands = make(map[string][]*discordgo.ApplicationCommand, 0)
 
-func registerCommands(session *discordgo.Session) error {
+func RegisterCommands(session *discordgo.Session) error {
 	// TODO: add global commands in case of prod
 
 	log.Println("Adding commands...")
 	guildids := strings.SplitSeq(os.Getenv("DISCORD_GUILD_ID"), ",")
 
 	for id := range guildids {
-		registeredCommands[id] = make([]*discordgo.ApplicationCommand, 0)
+		RegisteredCommands[id] = make([]*discordgo.ApplicationCommand, 0)
 		for _, c := range commands {
 			cmd, err := session.ApplicationCommandCreate(session.State.User.ID, id, &c.ApplicationCommand)
 			if err != nil {
 				return fmt.Errorf("Cannot create %s due to %s", c.Name, err.Error())
 			}
-			registeredCommands[id] = append(registeredCommands[id], cmd)
+			RegisteredCommands[id] = append(RegisteredCommands[id], cmd)
 		}
 	}
 
