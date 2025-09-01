@@ -2,7 +2,7 @@ package slash
 
 import dg "github.com/bwmarrin/discordgo"
 
-func standardizeContainer(container dg.Container) dg.Container {
+func StandardizeContainer(container dg.Container) dg.Container {
 	if container.AccentColor == nil || *container.AccentColor == 0 {
 		container.AccentColor = Ptr(EmbedColor)
 	}
@@ -18,7 +18,7 @@ func ReplyWithComponents(s *dg.Session, i *dg.Interaction, ephemeral bool, compo
 
 	for i := range components {
 		if container, ok := components[i].(dg.Container); ok {
-			components[i] = standardizeContainer(container)
+			components[i] = StandardizeContainer(container)
 		}
 	}
 

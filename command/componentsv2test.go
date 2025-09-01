@@ -144,7 +144,7 @@ var ComponentsV2Test = slash.Command{
 			},
 		})
 
-		view := dataview.MakeIssuesViewGithubStyle(sampleIssues, &db.ProjectViewState{}, dataview.IssuesViewGithubStyleOptions{
+		view := dataview.MakeIssuesView(sampleIssues, &db.ProjectViewState{}, dataview.IssuesViewOptions{
 			TitleOverride: "AutoList™️ for LOREM",
 		})
 		arrowbuttons := dg.ActionsRow{
@@ -158,7 +158,7 @@ var ComponentsV2Test = slash.Command{
 		}
 		queryButtons := dg.ActionsRow{
 			Components: []dg.MessageComponent{
-				dg.Button{Label: "Show closed", Style: dg.SecondaryButton, CustomID: "ping"},
+				dg.Button{Label: "Show closed", Style: dg.SecondaryButton, CustomID: "ping:harris"},
 				dg.Button{Label: "Sort by code", Style: dg.SecondaryButton, CustomID: "sort-by:code"},
 				dg.Button{Label: "Order asc", Style: dg.SecondaryButton, CustomID: "order:asc"},
 				dg.Button{Label: "Filters...", Style: dg.SecondaryButton, CustomID: "filters"},

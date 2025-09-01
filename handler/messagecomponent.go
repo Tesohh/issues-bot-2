@@ -11,7 +11,7 @@ type MessageComponentHandlerFunc func(s *dg.Session, i *dg.InteractionCreate, ar
 
 var messageComponentHandlers = map[string]MessageComponentHandlerFunc{
 	"ping": func(s *dg.Session, i *dg.InteractionCreate, args []string) error {
-		_, err := s.ChannelMessageSend(i.ChannelID, "pong")
+		_, err := s.ChannelMessageSend(i.ChannelID, args[1])
 		return err
 	},
 }

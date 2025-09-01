@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"issues/v2/db"
 	"issues/v2/helper"
-	"log/slog"
+	"issues/v2/slash"
 
 	dg "github.com/bwmarrin/discordgo"
 )
 
-type IssuesViewGithubStyleOptions struct {
+type IssuesViewOptions struct {
 	TitleOverride string // if set, will replace the default "Issues (filter)" title
 }
 
@@ -18,8 +18,8 @@ const MaxTitleLength = 70
 const MaxTagsCount = 3
 const MaxTagLength = 8
 
-func MakeIssuesViewGithubStyle(issues []db.Issue, state *db.ProjectViewState, options IssuesViewGithubStyleOptions) dg.Container {
-	title := "# Issues"
+func MakeIssuesView(issues []db.Issue, state *db.ProjectViewState, options IssuesViewOptions) dg.Container {
+	title := fmt.Sprintf("# Issues in %s", state.Project.Name)
 	if len(options.TitleOverride) > 0 {
 		title = "# " + options.TitleOverride
 	}
@@ -28,6 +28,7 @@ func MakeIssuesViewGithubStyle(issues []db.Issue, state *db.ProjectViewState, op
 
 	issues = state.Filter.Apply(issues)
 	issues = state.Sorter.Apply(issues)
+	issues = helper.Paginate(issues, MaxIssuesPerPage, state.CurrentPage)
 
 	components := []dg.MessageComponent{
 		dg.TextDisplay{Content: title + subtitle},
@@ -52,11 +53,12 @@ func MakeIssuesViewGithubStyle(issues []db.Issue, state *db.ProjectViewState, op
 		)
 
 		content += line
-		slog.Debug("length of line", "len", len(line))
 		//  TODO: trim text to make sure it is acertain len
 		//  TODO: add all info (tags, priority and category emoji)
 	}
-	components = append(components, dg.TextDisplay{Content: content})
 
-	return dg.Container{Components: components}
+	pageText := fmt.Sprintf("\n-# page %d/%d", state.CurrentPage+1, (len(issues)/MaxIssuesPerPage)+1)
+	components = append(components, dg.TextDisplay{Content: content}, dg.TextDisplay{Content: pageText})
+
+	return slash.StandardizeContainer(dg.Container{Components: components})
 }

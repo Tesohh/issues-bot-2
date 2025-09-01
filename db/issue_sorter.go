@@ -6,14 +6,14 @@ import (
 	"fmt"
 )
 
-type IssueSortBy uint8
+type IssueSortBy string
 
 const (
-	IssueSortByCode IssueSortBy = 0
-	IssueSortByDate IssueSortBy = 1
+	IssueSortByCode IssueSortBy = "code"
+	IssueSortByDate IssueSortBy = "date"
 )
 
-type SortOrder uint8
+type SortOrder int
 
 const (
 	SortOrderAscending  SortOrder = 0
