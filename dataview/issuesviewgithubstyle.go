@@ -46,6 +46,9 @@ func MakeIssuesView(issues []db.Issue, totalIssueCount int, state *db.ProjectVie
 		)
 		content += line
 	}
+	if len(content) == 0 {
+		content = "There are no issues here. **Get to work!**"
+	}
 
 	pageText := fmt.Sprintf("\n-# page %d/%d", state.CurrentPage+1, (totalIssueCount/MaxIssuesPerPage)+1)
 	components = append(components, dg.TextDisplay{Content: content}, dg.TextDisplay{Content: pageText})

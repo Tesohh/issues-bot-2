@@ -44,7 +44,11 @@ var List = slash.Command{
 				return err
 			}
 
-			query := db.Projects.Preload("Issues", nil).Preload("Issues.PriorityRole", nil).Preload("Issues.CategoryRole", nil)
+			query := db.Projects.
+				Preload("Issues", nil).
+				Preload("Issues.PriorityRole", nil).
+				Preload("Issues.CategoryRole", nil)
+
 			project, err := query.Where("discord_category_channel_id = ?", channel.ParentID).First(db.Ctx)
 			if err == gorm.ErrRecordNotFound {
 				// if that didn't work, get from the prefix option
@@ -60,6 +64,10 @@ var List = slash.Command{
 				}
 			} else if err != nil {
 				return err
+			}
+
+			for i := range project.Issues {
+				project.Issues[i].Project.GuildID = project.GuildID
 			}
 
 			// create a new state

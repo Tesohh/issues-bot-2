@@ -21,7 +21,7 @@ func MakeInteractiveIssuesView(issues []db.Issue, state *db.ProjectViewState, du
 	prepared = state.Sorter.Apply(prepared)
 	pages := helper.Pages(issues, MaxIssuesPerPage)
 
-	leftDisable := dummy || state.CurrentPage == 0
+	leftDisable := dummy || state.CurrentPage <= 0
 	rightDisable := dummy || state.CurrentPage >= pages-1
 
 	queryButtons := dg.ActionsRow{
