@@ -3,6 +3,7 @@ package dataview
 import (
 	"fmt"
 	"issues/v2/db"
+	"issues/v2/helper"
 
 	dg "github.com/bwmarrin/discordgo"
 )
@@ -15,6 +16,14 @@ func MakeInteractiveIssuesView(issues []db.Issue, state *db.ProjectViewState, du
 	if dummy {
 		msgID = "DUMMY"
 	}
+
+	prepared := state.Filter.Apply(issues)
+	prepared = state.Sorter.Apply(prepared)
+	pages := helper.Pages(issues, MaxIssuesPerPage)
+
+	leftDisable := dummy || state.CurrentPage == 0
+	rightDisable := dummy || state.CurrentPage >= pages-1
+
 	queryButtons := dg.ActionsRow{
 		Components: []dg.MessageComponent{
 			// TODO: check for page position
@@ -27,15 +36,17 @@ func MakeInteractiveIssuesView(issues []db.Issue, state *db.ProjectViewState, du
 	}
 	arrowButtons := dg.ActionsRow{
 		Components: []dg.MessageComponent{
-			dg.Button{Emoji: &dg.ComponentEmoji{Name: "⏮️"}, Style: dg.SecondaryButton, CustomID: fmt.Sprintf("issues-big-left:%s", msgID), Disabled: dummy},
-			dg.Button{Emoji: &dg.ComponentEmoji{Name: "⬅️"}, Style: dg.SecondaryButton, CustomID: fmt.Sprintf("issues-left:%s", msgID), Disabled: dummy},
-			dg.Button{Emoji: &dg.ComponentEmoji{Name: "➡️"}, Style: dg.SecondaryButton, CustomID: fmt.Sprintf("issues-right:%s", msgID), Disabled: dummy},
-			dg.Button{Emoji: &dg.ComponentEmoji{Name: "⏭️"}, Style: dg.SecondaryButton, CustomID: fmt.Sprintf("issues-big-right:%s", msgID), Disabled: dummy},
+			dg.Button{Emoji: &dg.ComponentEmoji{Name: "⏮️"}, Style: dg.SecondaryButton, CustomID: fmt.Sprintf("issues-big-left:%s", msgID), Disabled: leftDisable},
+			dg.Button{Emoji: &dg.ComponentEmoji{Name: "⬅️"}, Style: dg.SecondaryButton, CustomID: fmt.Sprintf("issues-left:%s", msgID), Disabled: leftDisable},
+			dg.Button{Emoji: &dg.ComponentEmoji{Name: "➡️"}, Style: dg.SecondaryButton, CustomID: fmt.Sprintf("issues-right:%s", msgID), Disabled: rightDisable},
+			dg.Button{Emoji: &dg.ComponentEmoji{Name: "⏭️"}, Style: dg.SecondaryButton, CustomID: fmt.Sprintf("issues-big-right:%s", msgID), Disabled: rightDisable},
 		},
 	}
 
+	prepared = helper.Paginate(prepared, MaxIssuesPerPage, state.CurrentPage)
+
 	// generate the view
-	view := MakeIssuesView(issues, state)
+	view := MakeIssuesView(prepared, len(issues), state)
 
 	return []dg.MessageComponent{queryButtons, view, arrowButtons}
 }

@@ -14,7 +14,7 @@ const MaxTitleLength = 70
 const MaxTagsCount = 3
 const MaxTagLength = 8
 
-func MakeIssuesView(issues []db.Issue, state *db.ProjectViewState) dg.Container {
+func MakeIssuesView(issues []db.Issue, totalIssueCount int, state *db.ProjectViewState) dg.Container {
 	titleFmt := "# Issues in %s `[%s]`"
 	if len(state.ListNameFmt) > 0 {
 		titleFmt += state.ListNameFmt
@@ -23,16 +23,12 @@ func MakeIssuesView(issues []db.Issue, state *db.ProjectViewState) dg.Container 
 	title := fmt.Sprintf(titleFmt, state.Project.Name, state.Project.Prefix)
 	subtitle := fmt.Sprintf("\n-# (%s, %s)", state.Filter, state.Sorter)
 
-	filteredIssues := state.Filter.Apply(issues)
-	filteredIssues = state.Sorter.Apply(filteredIssues)
-	filteredIssues = helper.Paginate(filteredIssues, MaxIssuesPerPage, state.CurrentPage)
-
 	components := []dg.MessageComponent{
 		dg.TextDisplay{Content: title + subtitle},
 	}
 
 	longestCode := 0
-	for _, issue := range filteredIssues {
+	for _, issue := range issues {
 		length := helper.DigitsLen(int(*issue.Code))
 		if length > longestCode {
 			longestCode = length
@@ -40,7 +36,7 @@ func MakeIssuesView(issues []db.Issue, state *db.ProjectViewState) dg.Container 
 	}
 
 	content := ""
-	for _, issue := range filteredIssues {
+	for _, issue := range issues {
 		tags := issue.PrettyTags(MaxTagsCount, MaxTagLength)
 		line := fmt.Sprintf("\n - %s %s %s %s",
 			issue.PrettyLink(longestCode),
@@ -51,7 +47,7 @@ func MakeIssuesView(issues []db.Issue, state *db.ProjectViewState) dg.Container 
 		content += line
 	}
 
-	pageText := fmt.Sprintf("\n-# page %d/%d", state.CurrentPage+1, helper.Pages(issues, MaxIssuesPerPage))
+	pageText := fmt.Sprintf("\n-# page %d/%d", state.CurrentPage+1, (totalIssueCount/MaxIssuesPerPage)+1)
 	components = append(components, dg.TextDisplay{Content: content}, dg.TextDisplay{Content: pageText})
 
 	return slash.StandardizeContainer(dg.Container{Components: components})
