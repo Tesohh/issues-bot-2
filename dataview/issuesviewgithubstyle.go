@@ -57,7 +57,7 @@ func MakeIssuesView(issues []db.Issue, state *db.ProjectViewState, options Issue
 		//  TODO: add all info (tags, priority and category emoji)
 	}
 
-	pageText := fmt.Sprintf("\n-# page %d/%d", state.CurrentPage+1, (len(issues)/MaxIssuesPerPage)+1)
+	pageText := fmt.Sprintf("\n-# page %d/%d", state.CurrentPage+1, helper.Pages(issues, MaxIssuesPerPage))
 	components = append(components, dg.TextDisplay{Content: content}, dg.TextDisplay{Content: pageText})
 
 	return slash.StandardizeContainer(dg.Container{Components: components})
