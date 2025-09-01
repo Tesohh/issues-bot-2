@@ -144,9 +144,7 @@ var ComponentsV2Test = slash.Command{
 			},
 		})
 
-		view := dataview.MakeIssuesView(sampleIssues, &db.ProjectViewState{}, dataview.IssuesViewOptions{
-			TitleOverride: "AutoList™️ for LOREM",
-		})
+		view := dataview.MakeIssuesView(sampleIssues, &db.ProjectViewState{})
 		arrowbuttons := dg.ActionsRow{
 			Components: []dg.MessageComponent{
 				dg.Button{Emoji: &dg.ComponentEmoji{Name: "⏮️"}, Style: dg.SecondaryButton, Disabled: true, CustomID: "bigleft"},

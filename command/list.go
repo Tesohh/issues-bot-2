@@ -68,7 +68,7 @@ var List = slash.Command{
 				Project:   project,
 			}
 			// send the message with no buttons
-			components := dataview.MakeInteractiveIssuesView(project.Issues, &state, dataview.IssuesViewOptions{}, true)
+			components := dataview.MakeInteractiveIssuesView(project.Issues, &state, true)
 
 			err = slash.ReplyWithComponents(s, i, false, components...)
 			if err != nil {
@@ -80,6 +80,7 @@ var List = slash.Command{
 				return err
 			}
 			state.MessageID = msg.ID
+			state.ChannelID = msg.ChannelID
 
 			err = db.ProjectViewStates.Create(db.Ctx, &state)
 			if err != nil {
@@ -87,7 +88,7 @@ var List = slash.Command{
 			}
 
 			// make the view WITH the buttons
-			components = dataview.MakeInteractiveIssuesView(project.Issues, &state, dataview.IssuesViewOptions{}, false)
+			components = dataview.MakeInteractiveIssuesView(project.Issues, &state, false)
 			_, err = s.InteractionResponseEdit(i, &dg.WebhookEdit{
 				Components: &components,
 			})

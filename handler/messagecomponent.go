@@ -7,13 +7,23 @@ import (
 	dg "github.com/bwmarrin/discordgo"
 )
 
-type MessageComponentHandlerFunc func(s *dg.Session, i *dg.InteractionCreate, args []string) error
+type messageComponentHandlerFunc func(s *dg.Session, i *dg.InteractionCreate, args []string) error
 
-var messageComponentHandlers = map[string]MessageComponentHandlerFunc{
-	"ping": func(s *dg.Session, i *dg.InteractionCreate, args []string) error {
+type messageComponentHandler struct {
+	argsCount int
+	ack       bool
+	handler   messageComponentHandlerFunc
+}
+
+var messageComponentHandlers = map[string]messageComponentHandler{
+	"ping": {1, true, func(s *dg.Session, i *dg.InteractionCreate, args []string) error {
 		_, err := s.ChannelMessageSend(i.ChannelID, args[1])
 		return err
-	},
+	}},
+	"issues-big-left":  {1, true, issuesBigLeft},
+	"issues-left":      {1, true, issuesLeft},
+	"issues-right":     {1, true, issuesRight},
+	"issues-big-right": {1, true, issuesBigRight},
 }
 
 // component custom ids need to be in this format: action:arg0:arg1
@@ -32,8 +42,18 @@ func MessageComponent(s *dg.Session, i *dg.InteractionCreate) {
 		return
 	}
 
-	err := handler(s, i, args)
+	if handler.argsCount+1 > len(args) {
+		slog.Error("message component called with not enough arguments", "id", args[0], "args", args)
+		return
+	}
+
+	err := handler.handler(s, i, args)
 	if err != nil {
 		slog.Error("message component handler error", "err", err, "args", args)
+	}
+	if handler.ack {
+		s.InteractionRespond(i.Interaction, &dg.InteractionResponse{
+			Type: dg.InteractionResponseUpdateMessage,
+		})
 	}
 }

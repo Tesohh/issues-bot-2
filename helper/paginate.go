@@ -10,12 +10,12 @@ func Paginate[T any](slice []T, pageSize int, page int) []T {
 	}
 
 	start := page * pageSize
-	if len(slice) < start {
+	if start > len(slice) {
 		return []T{}
 	}
 
 	end := start + pageSize
-	if len(slice) < end {
+	if end > len(slice) {
 		end = len(slice)
 	}
 

@@ -9,33 +9,30 @@ import (
 	dg "github.com/bwmarrin/discordgo"
 )
 
-type IssuesViewOptions struct {
-	TitleOverride string // if set, will replace the default "Issues (filter)" title
-}
-
 const MaxIssuesPerPage = 20
 const MaxTitleLength = 70
 const MaxTagsCount = 3
 const MaxTagLength = 8
 
-func MakeIssuesView(issues []db.Issue, state *db.ProjectViewState, options IssuesViewOptions) dg.Container {
-	title := fmt.Sprintf("# Issues in %s", state.Project.Name)
-	if len(options.TitleOverride) > 0 {
-		title = "# " + options.TitleOverride
+func MakeIssuesView(issues []db.Issue, state *db.ProjectViewState) dg.Container {
+	titleFmt := "# Issues in %s `[%s]`"
+	if len(state.ListNameFmt) > 0 {
+		titleFmt += state.ListNameFmt
 	}
 
+	title := fmt.Sprintf(titleFmt, state.Project.Name, state.Project.Prefix)
 	subtitle := fmt.Sprintf("\n-# (%s, %s)", state.Filter, state.Sorter)
 
-	issues = state.Filter.Apply(issues)
-	issues = state.Sorter.Apply(issues)
-	issues = helper.Paginate(issues, MaxIssuesPerPage, state.CurrentPage)
+	filteredIssues := state.Filter.Apply(issues)
+	filteredIssues = state.Sorter.Apply(filteredIssues)
+	filteredIssues = helper.Paginate(filteredIssues, MaxIssuesPerPage, state.CurrentPage)
 
 	components := []dg.MessageComponent{
 		dg.TextDisplay{Content: title + subtitle},
 	}
 
 	longestCode := 0
-	for _, issue := range issues {
+	for _, issue := range filteredIssues {
 		length := helper.DigitsLen(int(*issue.Code))
 		if length > longestCode {
 			longestCode = length
@@ -43,7 +40,7 @@ func MakeIssuesView(issues []db.Issue, state *db.ProjectViewState, options Issue
 	}
 
 	content := ""
-	for _, issue := range issues {
+	for _, issue := range filteredIssues {
 		tags := issue.PrettyTags(MaxTagsCount, MaxTagLength)
 		line := fmt.Sprintf("\n - %s %s %s %s",
 			issue.PrettyLink(longestCode),
@@ -51,10 +48,7 @@ func MakeIssuesView(issues []db.Issue, state *db.ProjectViewState, options Issue
 			issue.CutTitle(MaxTitleLength-len(tags)),
 			tags,
 		)
-
 		content += line
-		//  TODO: trim text to make sure it is acertain len
-		//  TODO: add all info (tags, priority and category emoji)
 	}
 
 	pageText := fmt.Sprintf("\n-# page %d/%d", state.CurrentPage+1, helper.Pages(issues, MaxIssuesPerPage))

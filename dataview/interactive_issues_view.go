@@ -9,7 +9,7 @@ import (
 
 // requires a message to have been sent BEFORE adding the buttons,
 // as it depends on state.MessageID
-func MakeInteractiveIssuesView(issues []db.Issue, state *db.ProjectViewState, options IssuesViewOptions, dummy bool) []dg.MessageComponent {
+func MakeInteractiveIssuesView(issues []db.Issue, state *db.ProjectViewState, dummy bool) []dg.MessageComponent {
 	// define the buttons, with the message ids
 	msgID := state.MessageID
 	if dummy {
@@ -27,15 +27,15 @@ func MakeInteractiveIssuesView(issues []db.Issue, state *db.ProjectViewState, op
 	}
 	arrowButtons := dg.ActionsRow{
 		Components: []dg.MessageComponent{
-			dg.Button{Emoji: &dg.ComponentEmoji{Name: "⏮️"}, Style: dg.SecondaryButton, CustomID: fmt.Sprintf("issues-bigleft:%s", msgID), Disabled: dummy},
+			dg.Button{Emoji: &dg.ComponentEmoji{Name: "⏮️"}, Style: dg.SecondaryButton, CustomID: fmt.Sprintf("issues-big-left:%s", msgID), Disabled: dummy},
 			dg.Button{Emoji: &dg.ComponentEmoji{Name: "⬅️"}, Style: dg.SecondaryButton, CustomID: fmt.Sprintf("issues-left:%s", msgID), Disabled: dummy},
 			dg.Button{Emoji: &dg.ComponentEmoji{Name: "➡️"}, Style: dg.SecondaryButton, CustomID: fmt.Sprintf("issues-right:%s", msgID), Disabled: dummy},
-			dg.Button{Emoji: &dg.ComponentEmoji{Name: "⏭️"}, Style: dg.SecondaryButton, CustomID: fmt.Sprintf("issues-bigright:%s", msgID), Disabled: dummy},
+			dg.Button{Emoji: &dg.ComponentEmoji{Name: "⏭️"}, Style: dg.SecondaryButton, CustomID: fmt.Sprintf("issues-big-right:%s", msgID), Disabled: dummy},
 		},
 	}
 
 	// generate the view
-	view := MakeIssuesView(issues, state, options)
+	view := MakeIssuesView(issues, state)
 
 	return []dg.MessageComponent{queryButtons, view, arrowButtons}
 }
