@@ -22,7 +22,7 @@ var Ctx = context.Background()
 
 func Connect(path string) (*gorm.DB, error) {
 	slog.Info("Connecting to db at", "path", path)
-	db, err := gorm.Open(sqlite.Open(path), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open(path))
 	if err != nil {
 		return nil, err
 	}

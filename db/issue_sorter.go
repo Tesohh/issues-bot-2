@@ -25,14 +25,29 @@ type IssueSorter struct {
 	SortOrder SortOrder
 }
 
+func DefaultSorter() IssueSorter {
+	return IssueSorter{
+		SortBy:    IssueSortByCode,
+		SortOrder: SortOrderDescending,
+	}
+}
+
 func (sorter IssueSorter) Apply(issues []Issue) []Issue {
 	// TODO: implement
 	return issues
 }
 
 func (sorter IssueSorter) String() string {
-	// TODO: implement
-	return ""
+	str := "sort by"
+	str += " " + string(sorter.SortBy)
+	switch sorter.SortOrder {
+	case SortOrderAscending:
+		str += " asc"
+	case SortOrderDescending:
+		str += " desc"
+	}
+
+	return str
 }
 
 // functions to save this in the db as json

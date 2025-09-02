@@ -66,17 +66,20 @@ var List = slash.Command{
 				return err
 			}
 
-			for i := range project.Issues {
-				project.Issues[i].Project.GuildID = project.GuildID
+			issues := project.Issues
+			for i := range issues {
+				issues[i].Project.GuildID = project.GuildID
 			}
 
 			// create a new state
 			state := db.ProjectViewState{
 				ProjectID: project.ID,
 				Project:   project,
+				Filter:    db.DefaultFilter(),
+				Sorter:    db.DefaultSorter(),
 			}
 			// send the message with no buttons
-			components := dataview.MakeInteractiveIssuesView(project.Issues, &state, true)
+			components := dataview.MakeInteractiveIssuesView(issues, &state, true)
 
 			err = slash.ReplyWithComponents(s, i, false, components...)
 			if err != nil {
@@ -90,13 +93,15 @@ var List = slash.Command{
 			state.MessageID = msg.ID
 			state.ChannelID = msg.ChannelID
 
+			state.Project = db.Project{} // im so sorry. this causes issues with gorm for some reason.
 			err = db.ProjectViewStates.Create(db.Ctx, &state)
 			if err != nil {
 				return err
 			}
 
+			state.Project = project // im so sorry
 			// make the view WITH the buttons
-			components = dataview.MakeInteractiveIssuesView(project.Issues, &state, false)
+			components = dataview.MakeInteractiveIssuesView(issues, &state, false)
 			_, err = s.InteractionResponseEdit(i, &dg.WebhookEdit{
 				Components: &components,
 			})
