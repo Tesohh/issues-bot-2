@@ -4,6 +4,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"slices"
 )
 
 type IssueSortBy string
@@ -28,13 +29,28 @@ type IssueSorter struct {
 func DefaultSorter() IssueSorter {
 	return IssueSorter{
 		SortBy:    IssueSortByCode,
-		SortOrder: SortOrderDescending,
+		SortOrder: SortOrderAscending,
 	}
 }
 
 func (sorter IssueSorter) Apply(issues []Issue) []Issue {
-	// TODO: implement
-	return issues
+	return slices.SortedFunc(slices.Values(issues), func(a, b Issue) int {
+		if sorter.SortOrder == SortOrderDescending {
+			a, b = b, a
+		}
+
+		switch sorter.SortBy {
+		case IssueSortByDate:
+			return a.CreatedAt.Compare(b.CreatedAt)
+		case IssueSortByCode:
+			if a.Code == nil || b.Code == nil {
+				return 0
+			}
+			return int(*a.Code) - int(*b.Code)
+		}
+
+		return 0
+	})
 }
 
 func (sorter IssueSorter) String() string {
