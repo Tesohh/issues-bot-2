@@ -41,7 +41,7 @@ func (sorter IssueSorter) Apply(issues []Issue) []Issue {
 
 		switch sorter.SortBy {
 		case IssueSortByDate:
-			return a.CreatedAt.Compare(b.CreatedAt)
+			return a.UpdatedAt.Compare(b.UpdatedAt)
 		case IssueSortByCode:
 			if a.Code == nil || b.Code == nil {
 				return 0

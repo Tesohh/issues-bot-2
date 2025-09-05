@@ -4,9 +4,82 @@ import (
 	"fmt"
 	"issues/v2/db"
 	"issues/v2/helper"
+	"slices"
 
 	dg "github.com/bwmarrin/discordgo"
 )
+
+func makeStatusButton(state *db.ProjectViewState, dummy bool) dg.Button {
+	label := ""
+	style := dg.SecondaryButton
+	statuses := ""
+	if slices.Equal(state.Filter.Statuses, []db.IssueStatus{db.IssueStatusTodo, db.IssueStatusWorking}) {
+		label = "Show closed"
+		statuses = "done,killed"
+	} else if slices.Equal(state.Filter.Statuses, []db.IssueStatus{db.IssueStatusDone, db.IssueStatusKilled}) {
+		label = "Show open"
+		statuses = "todo,working"
+	} else {
+		label = "Reset statuses"
+		statuses = "todo,working"
+	}
+	return dg.Button{
+		Label:    label,
+		Style:    style,
+		CustomID: fmt.Sprintf("issues-set-statuses:%s:%s", state.MessageID, statuses),
+		Disabled: dummy,
+	}
+}
+
+func makeSortByButton(state *db.ProjectViewState, dummy bool) dg.Button {
+	label := ""
+	style := dg.SecondaryButton
+	sortby := ""
+
+	switch state.Sorter.SortBy {
+	case db.IssueSortByCode:
+		label = "Sort by date"
+		sortby = "date"
+	case db.IssueSortByDate:
+		label = "Sort by code"
+		sortby = "code"
+	default:
+		label = "Reset sort by"
+		sortby = "code"
+	}
+
+	return dg.Button{
+		Label:    label,
+		Style:    style,
+		CustomID: fmt.Sprintf("issues-sort-by:%s:%s", state.MessageID, sortby),
+		Disabled: dummy,
+	}
+}
+
+func makeSortOrderButton(state *db.ProjectViewState, dummy bool) dg.Button {
+	label := ""
+	style := dg.SecondaryButton
+	order := ""
+
+	switch state.Sorter.SortOrder {
+	case db.SortOrderAscending:
+		label = "Order desc"
+		order = "desc"
+	case db.SortOrderDescending:
+		label = "Order asc"
+		order = "asc"
+	default:
+		label = "Reset order"
+		order = "asc"
+	}
+
+	return dg.Button{
+		Label:    label,
+		Style:    style,
+		CustomID: fmt.Sprintf("issues-order:%s:%s", state.MessageID, order),
+		Disabled: dummy,
+	}
+}
 
 // requires a message to have been sent BEFORE adding the buttons,
 // as it depends on state.MessageID
@@ -27,9 +100,9 @@ func MakeInteractiveIssuesView(issues []db.Issue, state *db.ProjectViewState, du
 	queryButtons := dg.ActionsRow{
 		Components: []dg.MessageComponent{
 			// TODO: check for page position
-			dg.Button{Label: "Show closed", Style: dg.SecondaryButton, CustomID: fmt.Sprintf("issues-show-closed:%s", msgID), Disabled: dummy},
-			dg.Button{Label: "Sort by code", Style: dg.SecondaryButton, CustomID: fmt.Sprintf("issues-sort-by:%s:code", msgID), Disabled: dummy}, // TODO:
-			dg.Button{Label: "Order asc", Style: dg.SecondaryButton, CustomID: fmt.Sprintf("issues-order:%s:asc", msgID), Disabled: dummy},       // TODO:
+			makeStatusButton(state, dummy),
+			makeSortByButton(state, dummy),
+			makeSortOrderButton(state, dummy),
 			dg.Button{Label: "Filters...", Style: dg.SecondaryButton, CustomID: fmt.Sprintf("issues-filters:%s", msgID), Disabled: dummy},
 			dg.Button{Label: "My issues", Style: dg.SuccessButton, CustomID: fmt.Sprintf("issues-show-mine:%s", msgID), Disabled: dummy},
 		},

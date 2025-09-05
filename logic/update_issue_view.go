@@ -18,7 +18,12 @@ func UpdateInteractiveIssuesView(s *dg.Session, messageID string, page0 bool) er
 		}
 	}
 
-	state, err := db.ProjectViewStates.Preload("Project.Issues", nil).Where("message_id = ?", messageID).First(db.Ctx)
+	state, err := db.ProjectViewStates.
+		Preload("Project.Issues", nil).
+		Preload("Project.Issues.PriorityRole", nil).
+		Preload("Project.Issues.CategoryRole", nil).
+		Where("message_id = ?", messageID).
+		First(db.Ctx)
 	if err != nil {
 		return err
 	}

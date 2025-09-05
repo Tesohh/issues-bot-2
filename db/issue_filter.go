@@ -8,8 +8,6 @@ import (
 	"strings"
 )
 
-var issueStatusNames = [4]string{"todo", "working", "done", "killed"} // TODO: don't duplicate this (for now we have import cycle)
-
 type IssueFilter struct {
 	Statuses        []IssueStatus
 	Tags            []string
@@ -22,7 +20,7 @@ type IssueFilter struct {
 
 func DefaultFilter() IssueFilter {
 	return IssueFilter{
-		Statuses:        []IssueStatus{},
+		Statuses:        []IssueStatus{IssueStatusTodo, IssueStatusWorking},
 		Tags:            []string{},
 		PriorityRoleIDs: []string{},
 		CategoryRoleIDs: []string{},
@@ -103,7 +101,7 @@ func (f IssueFilter) Apply(issues []Issue) []Issue {
 func (f IssueFilter) String() string {
 	keywords := []string{}
 	for _, status := range f.Statuses {
-		keywords = append(keywords, issueStatusNames[status])
+		keywords = append(keywords, IssueStatusNames[status])
 	}
 	for _, tag := range f.Tags {
 		keywords = append(keywords, fmt.Sprintf("`+%s`", tag))
