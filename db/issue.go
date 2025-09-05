@@ -17,9 +17,9 @@ const (
 	IssueStatusKilled  IssueStatus = 3
 )
 
-var IssueStatusIcons = [4]string{"🟩", "🟦", "🟪", "🟥"}
-var IssueStatusColors = [4]int{0x7cb45c, 0x54acee, 0xa98ed6, 0xdd2e44}
-var IssueStatusNames = [4]string{"todo", "working", "done", "killed"}
+var IssueStatusIcons = []string{"🟩", "🟦", "🟪", "🟥"}
+var IssueStatusColors = []int{0x7cb45c, 0x54acee, 0xa98ed6, 0xdd2e44}
+var IssueStatusNames = []string{"todo", "working", "done", "killed"}
 
 type IssueKind string
 

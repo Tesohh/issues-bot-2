@@ -14,11 +14,11 @@ const (
 	IssueSortByDate IssueSortBy = "date"
 )
 
-type SortOrder int
+type SortOrder string
 
 const (
-	SortOrderAscending  SortOrder = 0
-	SortOrderDescending SortOrder = 1
+	SortOrderAscending  SortOrder = "asc"
+	SortOrderDescending SortOrder = "desc"
 )
 
 type IssueSorter struct {

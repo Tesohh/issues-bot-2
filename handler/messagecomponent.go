@@ -24,6 +24,12 @@ var messageComponentHandlers = map[string]messageComponentHandler{
 	"issues-left":      {1, true, issuesLeft},
 	"issues-right":     {1, true, issuesRight},
 	"issues-big-right": {1, true, issuesBigRight},
+
+	"issues-set-statuses": {2, true, issuesSetStatuses},
+	"issues-sort-by":      {2, true, issuesSortBy},
+	"issues-order":        {2, true, issuesOrder},
+	"issues-filters":      {1, true, issuesFilters},  // TODO:
+	"issues-show-mine":    {1, true, issuesShowMine}, // TODO:
 }
 
 // component custom ids need to be in this format: action:arg0:arg1
