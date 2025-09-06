@@ -1,8 +1,8 @@
 package command
 
 import (
-	"issues/v2/dataview"
 	"issues/v2/db"
+	"issues/v2/logic"
 	"issues/v2/slash"
 	"strings"
 
@@ -66,9 +66,8 @@ var List = slash.Command{
 				return err
 			}
 
-			issues := project.Issues
-			for i := range issues {
-				issues[i].Project.GuildID = project.GuildID
+			for i := range project.Issues {
+				project.Issues[i].Project.GuildID = project.GuildID
 			}
 
 			// create a new state
@@ -78,38 +77,8 @@ var List = slash.Command{
 				Filter:    db.DefaultFilter(),
 				Sorter:    db.DefaultSorter(),
 			}
-			// send the message with no buttons
-			components := dataview.MakeInteractiveIssuesView(issues, &state, true)
 
-			err = slash.ReplyWithComponents(s, i, false, components...)
-			if err != nil {
-				return err
-			}
-
-			msg, err := s.InteractionResponse(i)
-			if err != nil {
-				return err
-			}
-			state.MessageID = msg.ID
-			state.ChannelID = msg.ChannelID
-
-			state.Project = db.Project{} // im so sorry. this causes issues with gorm for some reason.
-			err = db.ProjectViewStates.Create(db.Ctx, &state)
-			if err != nil {
-				return err
-			}
-
-			state.Project = project // im so sorry
-			// make the view WITH the buttons
-			components = dataview.MakeInteractiveIssuesView(issues, &state, false)
-			_, err = s.InteractionResponseEdit(i, &dg.WebhookEdit{
-				Components: &components,
-			})
-			if err != nil {
-				return err
-			}
-
-			// TODO: apply filters from the discord options
+			return logic.InitIssueView(s, i, &state, false)
 		}
 
 		return nil
