@@ -20,11 +20,8 @@ var messageComponentHandlers = map[string]messageComponentHandler{
 		_, err := s.ChannelMessageSend(i.ChannelID, args[1])
 		return err
 	}},
-	"issues-big-left":  {1, true, issuesBigLeft},
-	"issues-left":      {1, true, issuesLeft},
-	"issues-right":     {1, true, issuesRight},
-	"issues-big-right": {1, true, issuesBigRight},
 
+	"issues-goto":         {2, true, issuesGoto},
 	"issues-set-statuses": {2, true, issuesSetStatuses},
 	"issues-sort-by":      {2, true, issuesSortBy},
 	"issues-order":        {2, true, issuesOrder},

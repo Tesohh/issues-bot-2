@@ -108,10 +108,10 @@ func MakeInteractiveIssuesView(issues []db.Issue, state *db.ProjectViewState, du
 	}
 	arrowButtons := dg.ActionsRow{
 		Components: []dg.MessageComponent{
-			dg.Button{Emoji: &dg.ComponentEmoji{Name: "⏮️"}, Style: dg.SecondaryButton, CustomID: fmt.Sprintf("issues-big-left:%s", msgID), Disabled: leftDisable},
-			dg.Button{Emoji: &dg.ComponentEmoji{Name: "⬅️"}, Style: dg.SecondaryButton, CustomID: fmt.Sprintf("issues-left:%s", msgID), Disabled: leftDisable},
-			dg.Button{Emoji: &dg.ComponentEmoji{Name: "➡️"}, Style: dg.SecondaryButton, CustomID: fmt.Sprintf("issues-right:%s", msgID), Disabled: rightDisable},
-			dg.Button{Emoji: &dg.ComponentEmoji{Name: "⏭️"}, Style: dg.SecondaryButton, CustomID: fmt.Sprintf("issues-big-right:%s", msgID), Disabled: rightDisable},
+			dg.Button{Emoji: &dg.ComponentEmoji{Name: "⏮️"}, Style: dg.SecondaryButton, CustomID: fmt.Sprintf("issues-goto:%s:%d:bigleft", msgID, 0), Disabled: leftDisable},
+			dg.Button{Emoji: &dg.ComponentEmoji{Name: "⬅️"}, Style: dg.SecondaryButton, CustomID: fmt.Sprintf("issues-goto:%s:%d:left", msgID, state.CurrentPage-1), Disabled: leftDisable},
+			dg.Button{Emoji: &dg.ComponentEmoji{Name: "➡️"}, Style: dg.SecondaryButton, CustomID: fmt.Sprintf("issues-goto:%s:%d:right", msgID, state.CurrentPage+1), Disabled: rightDisable},
+			dg.Button{Emoji: &dg.ComponentEmoji{Name: "⏭️"}, Style: dg.SecondaryButton, CustomID: fmt.Sprintf("issues-goto:%s:%d:bigright", msgID, pages-1), Disabled: rightDisable},
 		},
 	}
 

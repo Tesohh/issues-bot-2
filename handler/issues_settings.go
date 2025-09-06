@@ -9,6 +9,15 @@ import (
 	dg "github.com/bwmarrin/discordgo"
 )
 
+func issuesGoto(s *dg.Session, i *dg.InteractionCreate, args []string) error {
+	_, err := db.ProjectViewStates.Where("message_id = ?", args[1]).Update(db.Ctx, "current_page", args[2])
+	if err != nil {
+		return err
+	}
+
+	return logic.UpdateInteractiveIssuesView(s, args[1], false)
+}
+
 func issuesSetStatuses(s *dg.Session, i *dg.InteractionCreate, args []string) error {
 	state, err := db.ProjectViewStates.Where("message_id = ?", args[1]).First(db.Ctx)
 	if err != nil {
