@@ -62,7 +62,3 @@ func issuesOrder(s *dg.Session, i *dg.InteractionCreate, args []string) error {
 func issuesFilters(s *dg.Session, i *dg.InteractionCreate, args []string) error {
 	return nil
 }
-
-func issuesShowMine(s *dg.Session, i *dg.InteractionCreate, args []string) error {
-	return nil
-}

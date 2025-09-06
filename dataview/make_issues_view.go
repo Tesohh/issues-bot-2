@@ -17,7 +17,7 @@ const MaxTagLength = 8
 func MakeIssuesView(issues []db.Issue, totalIssueCount int, state *db.ProjectViewState) dg.Container {
 	titleFmt := "# Issues in %s `[%s]`"
 	if len(state.ListNameFmt) > 0 {
-		titleFmt += state.ListNameFmt
+		titleFmt = state.ListNameFmt
 	}
 
 	title := fmt.Sprintf(titleFmt, state.Project.Name, state.Project.Prefix)

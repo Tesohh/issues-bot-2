@@ -13,7 +13,7 @@ func StandardizeContainer(container dg.Container) dg.Container {
 func ReplyWithComponents(s *dg.Session, i *dg.Interaction, ephemeral bool, components ...dg.MessageComponent) error {
 	var flags dg.MessageFlags = dg.MessageFlagsIsComponentsV2
 	if ephemeral {
-		flags = dg.MessageFlagsEphemeral
+		flags |= dg.MessageFlagsEphemeral
 	}
 
 	for i := range components {
