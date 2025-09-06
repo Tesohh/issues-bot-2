@@ -104,7 +104,6 @@ func MakeInteractiveIssuesView(issues []db.Issue, state *db.ProjectViewState, du
 			makeSortByButton(state, dummy),
 			makeSortOrderButton(state, dummy),
 			dg.Button{Label: "Filters...", Style: dg.SecondaryButton, CustomID: fmt.Sprintf("issues-filters:%s", msgID), Disabled: dummy},
-			dg.Button{Label: "My issues", Style: dg.SuccessButton, CustomID: fmt.Sprintf("issues-show-mine:%d", state.ProjectID), Disabled: dummy},
 		},
 	}
 	arrowButtons := dg.ActionsRow{
