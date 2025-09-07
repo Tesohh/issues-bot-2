@@ -14,6 +14,8 @@ type ProjectViewState struct {
 	ProjectID uint
 	Project   Project
 
+	Permanent bool
+
 	CurrentPage int
 
 	ListNameFmt string // eg. "# Autolist for %s `[%s]`"

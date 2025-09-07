@@ -3,6 +3,7 @@ package command
 import (
 	"fmt"
 	"issues/v2/db"
+	"issues/v2/logic"
 	"issues/v2/slash"
 	"strings"
 
@@ -171,6 +172,28 @@ func ProjectNew(s *dg.Session, i *dg.Interaction, prefix string, name string, re
 	embed := dg.MessageEmbed{
 		Title:       fmt.Sprintf("Created project %s [`%s`]", name, strings.ToUpper(prefix)),
 		Description: fmt.Sprintf("Check out <#%s>", inputChannel.ID),
+	}
+	err = slash.ReplyWithEmbed(s, i, embed, false)
+	if err != nil {
+		return err
+	}
+
+	for i := range project.Issues {
+		project.Issues[i].Project.GuildID = project.GuildID
+	}
+
+	state := db.ProjectViewState{
+		ProjectID:   project.ID,
+		Project:     project,
+		Filter:      db.DefaultFilter(),
+		Sorter:      db.DefaultSorter(),
+		Permanent:   true,
+		ListNameFmt: "# AutoList™️ for %s `[%s]`",
+	}
+
+	err = logic.InitIssueViewDetached(s, i, inputChannel.ID, &state)
+	if err != nil {
+		return err
 	}
 
 	return slash.ReplyWithEmbed(s, i, embed, false)
