@@ -59,7 +59,7 @@ func UpdateAllInteractiveIssuesViews(s *dg.Session, projectID uint) error {
 	}
 	// TODO: add warning message for having too many lsits as this can be slow
 	for _, state := range states {
-		if !state.Permanent && time.Since(state.UpdatedAt) > 24*time.Second {
+		if !state.Permanent && time.Since(state.UpdatedAt) > 24*time.Hour {
 			state.DeletedAt.Valid = true
 
 			_, err = db.ProjectViewStates.Where("message_id = ?", state.MessageID).Delete(db.Ctx)

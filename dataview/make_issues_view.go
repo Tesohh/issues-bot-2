@@ -53,7 +53,7 @@ func MakeIssuesView(issues []db.Issue, totalIssueCount int, state *db.ProjectVie
 
 	pageText := fmt.Sprintf("\n-# page %d/%d", state.CurrentPage+1, (totalIssueCount/MaxIssuesPerPage)+1)
 	if state.DeletedAt.Valid {
-		pageText += "\n-# ⚠️this list has been purged and cannot be interacted with\n-# kindly delete this message!\n-# if you wish to make lists permanent, use the `permanent` flag in `/list issues` next time"
+		pageText += "\n-# ⚠️WARNING\n-# this list has been purged and cannot be interacted with\n-# kindly delete this message!\n-# if you wish to make lists permanent, use the `permanent` flag in `/list issues` next time"
 	}
 	components = append(components, dg.TextDisplay{Content: content}, dg.TextDisplay{Content: pageText})
 
