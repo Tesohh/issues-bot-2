@@ -106,7 +106,7 @@ var Project = slash.Command{
 			err = ProjectRename(s, i, prefix, name)
 		case "delete":
 			confirm := options["confirm"].BoolValue()
-			err = ProjectDelete(s, i, prefix, confirm)
+			err = ProjectDelete(s, i, prefix, confirm, true)
 		}
 
 		return err
@@ -223,7 +223,7 @@ func ProjectRename(s *dg.Session, i *dg.Interaction, prefix string, name string)
 	return slash.ReplyWithEmbed(s, i, embed, false)
 }
 
-func ProjectDelete(s *dg.Session, i *dg.Interaction, prefix string, confirmation bool) error {
+func ProjectDelete(s *dg.Session, i *dg.Interaction, prefix string, confirmation bool, reply bool) error {
 	if !confirmation {
 		return slash.ReplyWithEmbed(s, i, dg.MessageEmbed{
 			Title: "alright, no actions taken",
@@ -265,9 +265,11 @@ func ProjectDelete(s *dg.Session, i *dg.Interaction, prefix string, confirmation
 		}
 	}
 
-	embed := dg.MessageEmbed{
-		Title: fmt.Sprintf("Deleted project `%s`", strings.ToUpper(prefix)),
+	if reply {
+		embed := dg.MessageEmbed{
+			Title: fmt.Sprintf("Deleted project `%s`", strings.ToUpper(prefix)),
+		}
+		return slash.ReplyWithEmbed(s, i, embed, false)
 	}
-
-	return slash.ReplyWithEmbed(s, i, embed, false)
+	return nil
 }
