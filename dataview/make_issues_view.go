@@ -5,6 +5,7 @@ import (
 	"issues/v2/db"
 	"issues/v2/helper"
 	"issues/v2/slash"
+	"strings"
 
 	dg "github.com/bwmarrin/discordgo"
 )
@@ -20,7 +21,7 @@ func MakeIssuesView(issues []db.Issue, totalIssueCount int, state *db.ProjectVie
 		titleFmt = state.ListNameFmt
 	}
 
-	title := fmt.Sprintf(titleFmt, state.Project.Name, state.Project.Prefix)
+	title := fmt.Sprintf(titleFmt, state.Project.Name, strings.ToUpper(state.Project.Prefix))
 	subtitle := fmt.Sprintf("\n-# (%s, %s)", state.Filter, state.Sorter)
 
 	components := []dg.MessageComponent{
