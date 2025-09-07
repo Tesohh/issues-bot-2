@@ -21,11 +21,12 @@ var messageComponentHandlers = map[string]messageComponentHandler{
 		return err
 	}},
 
-	"issues-goto":         {2, true, issuesGoto},
-	"issues-set-statuses": {2, true, issuesSetStatuses},
-	"issues-sort-by":      {2, true, issuesSortBy},
-	"issues-order":        {2, true, issuesOrder},
-	"issues-filters":      {1, true, issuesFilters}, // TODO:
+	"issues-goto":          {2, true, issuesGoto},
+	"issues-set-statuses":  {2, true, issuesSetStatuses},
+	"issues-sort-by":       {2, true, issuesSortBy},
+	"issues-order":         {2, true, issuesOrder},
+	"issues-filter-people": {1, true, issuesFilterPeople},
+	"issues-filter-data":   {1, true, issuesFilterData},
 }
 
 // component custom ids need to be in this format: action:arg0:arg1
