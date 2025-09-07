@@ -204,22 +204,23 @@ func ProjectRename(s *dg.Session, i *dg.Interaction, prefix string, name string)
 		return ErrProjectNotFound
 	}
 
-	project, err := query.Select("discord_category_channel_id").First(db.Ctx)
+	project, err := query.Select("id, discord_category_channel_id").First(db.Ctx)
 	if err != nil {
 		return err
 	}
 
+	// PERF: for some mysterious reason this function takes a really long time to run
 	_, err = s.ChannelEdit(project.DiscordCategoryChannelID, &dg.ChannelEdit{Name: name})
 	if err != nil {
 		return err
 	}
 
-	// TODO: update autolist
-
-	embed := dg.MessageEmbed{
-		Title: fmt.Sprintf("Successfully renamed `%s` to %s", prefix, name),
+	err = slash.ReplyWithEmbed(s, i, dg.MessageEmbed{Title: fmt.Sprintf("Successfully renamed `%s` to %s", prefix, name)}, false)
+	if err != nil {
+		return err
 	}
-	return slash.ReplyWithEmbed(s, i, embed, false)
+
+	return logic.UpdateAllInteractiveIssuesViews(s, project.ID)
 }
 
 func ProjectDelete(s *dg.Session, i *dg.Interaction, prefix string, confirmation bool, reply bool) error {
