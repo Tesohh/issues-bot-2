@@ -164,6 +164,6 @@ var New = slash.Command{
 			return err
 		}
 
-		return nil
+		return logic.UpdateAllInteractiveIssuesViews(s, project.ID)
 	},
 }

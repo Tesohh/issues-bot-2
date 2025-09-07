@@ -40,8 +40,12 @@ func UpdateInteractiveIssuesView(s *dg.Session, messageID string, page0 bool) er
 // updates all views linked to a project
 // use this when issues in a project are updated
 // does not change the page, as someone updating an issue would change the page and would be annoying
-func UpdateAllInteractiveIssuesViews(s *dg.Session, projectID string) error {
-	project, err := db.Projects.Where("id = ?", projectID).First(db.Ctx)
+func UpdateAllInteractiveIssuesViews(s *dg.Session, projectID uint) error {
+	project, err := db.Projects.Preload("Issues", nil).
+		Preload("Issues.PriorityRole", nil).
+		Preload("Issues.CategoryRole", nil).
+		Where("id = ?", projectID).
+		First(db.Ctx)
 	if err != nil {
 		return err
 	}
@@ -50,7 +54,9 @@ func UpdateAllInteractiveIssuesViews(s *dg.Session, projectID string) error {
 	if err != nil {
 		return err
 	}
+	// TODO: add warning message for having too many lsits as this can be slow
 	for _, state := range states {
+		state.Project = project
 		components := dataview.MakeInteractiveIssuesView(project.Issues, &state, false)
 		_, err = s.ChannelMessageEditComplex(&dg.MessageEdit{
 			Components: &components,
