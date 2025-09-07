@@ -3,6 +3,8 @@ package logic
 import (
 	"issues/v2/dataview"
 	"issues/v2/db"
+	"log/slog"
+	"time"
 
 	dg "github.com/bwmarrin/discordgo"
 )
@@ -40,6 +42,7 @@ func UpdateInteractiveIssuesView(s *dg.Session, messageID string, page0 bool) er
 // updates all views linked to a project
 // use this when issues in a project are updated
 // does not change the page, as someone updating an issue would change the page and would be annoying
+// also purges old lists
 func UpdateAllInteractiveIssuesViews(s *dg.Session, projectID uint) error {
 	project, err := db.Projects.Preload("Issues", nil).
 		Preload("Issues.PriorityRole", nil).
@@ -56,6 +59,15 @@ func UpdateAllInteractiveIssuesViews(s *dg.Session, projectID uint) error {
 	}
 	// TODO: add warning message for having too many lsits as this can be slow
 	for _, state := range states {
+		if !state.Permanent && time.Since(state.UpdatedAt) > 24*time.Second {
+			state.DeletedAt.Valid = true
+
+			_, err = db.ProjectViewStates.Where("message_id = ?", state.MessageID).Delete(db.Ctx)
+			if err != nil {
+				slog.Error("error while deleting state", "err", err, "state", state)
+			}
+		}
+
 		state.Project = project
 		components := dataview.MakeInteractiveIssuesView(project.Issues, &state, false)
 		_, err = s.ChannelMessageEditComplex(&dg.MessageEdit{

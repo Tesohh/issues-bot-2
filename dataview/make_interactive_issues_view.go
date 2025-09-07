@@ -84,6 +84,9 @@ func makeSortOrderButton(state *db.ProjectViewState, dummy bool) dg.Button {
 // requires a message to have been sent BEFORE adding the buttons,
 // as it depends on state.MessageID
 func MakeInteractiveIssuesView(issues []db.Issue, state *db.ProjectViewState, dummy bool) []dg.MessageComponent {
+	if state.DeletedAt.Valid {
+		dummy = true
+	}
 	// define the buttons, with the message ids
 	msgID := state.MessageID
 	if dummy {

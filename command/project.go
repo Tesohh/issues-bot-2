@@ -169,15 +169,6 @@ func ProjectNew(s *dg.Session, i *dg.Interaction, prefix string, name string, re
 		return err
 	}
 
-	embed := dg.MessageEmbed{
-		Title:       fmt.Sprintf("Created project %s [`%s`]", name, strings.ToUpper(prefix)),
-		Description: fmt.Sprintf("Check out <#%s>", inputChannel.ID),
-	}
-	err = slash.ReplyWithEmbed(s, i, embed, false)
-	if err != nil {
-		return err
-	}
-
 	for i := range project.Issues {
 		project.Issues[i].Project.GuildID = project.GuildID
 	}
@@ -196,6 +187,10 @@ func ProjectNew(s *dg.Session, i *dg.Interaction, prefix string, name string, re
 		return err
 	}
 
+	embed := dg.MessageEmbed{
+		Title:       fmt.Sprintf("Created project %s [`%s`]", name, strings.ToUpper(prefix)),
+		Description: fmt.Sprintf("Check out <#%s>", inputChannel.ID),
+	}
 	return slash.ReplyWithEmbed(s, i, embed, false)
 }
 
@@ -252,6 +247,12 @@ func ProjectDelete(s *dg.Session, i *dg.Interaction, prefix string, confirmation
 
 	// delete the project in the DB
 	_, err = db.Projects.Where("id = ?", project.ID).Delete(db.Ctx)
+	if err != nil {
+		return err
+	}
+
+	// delete the projectviewstates
+	_, err = db.ProjectViewStates.Where("project_id = ?", project.ID).Delete(db.Ctx)
 	if err != nil {
 		return err
 	}

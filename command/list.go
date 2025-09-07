@@ -78,9 +78,40 @@ var List = slash.Command{
 				Sorter:    db.DefaultSorter(),
 			}
 
-			return logic.InitIssueView(s, i, &state, false)
+			err = logic.InitIssueView(s, i, &state, false)
+			if err != nil {
+				return err
+			}
+
+			// solicitation
+			count, err := db.ProjectViewStates.Where("project_id = ?", project.ID).Count(db.Ctx, "*")
+			if count >= 5 && !project.HasBeenSolicitedByListWarning {
+				s.ChannelMessageSendComplex(i.ChannelID, &dg.MessageSend{
+					Components: []dg.MessageComponent{
+						slash.StandardizeContainer(warningContainer),
+					},
+					Flags: dg.MessageFlagsIsComponentsV2,
+				})
+				db.Projects.Where("id = ?", project.ID).Update(db.Ctx, "HasBeenSolicitedByListWarning", true)
+			}
+
+			return nil
 		}
 
 		return nil
+	},
+}
+
+var warningContainer = dg.Container{
+	Components: []dg.MessageComponent{
+		dg.TextDisplay{Content: `
+# ⚠️ Warning 
+- Having too many lists can get really slow due to discord rate limits.
+  - This means that lists are updated sequentially when you add a new issue, update it etc.
+  - The first 5 or so lists are updated almost instantly, while it takes about 5 seconds or more for each next list.
+  - The AutoList is always the first one to be updated.
+- After you're done using a temporary list, please delete the message.
+- Old lists are automatically untracked after a day, unless you set your lists to` + " `Permanent`" + `.
+- This won't be shown again in this project, but be wary.`},
 	},
 }

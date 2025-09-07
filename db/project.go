@@ -16,6 +16,8 @@ type Project struct {
 	IssuesInputChannelID     string
 	AutoListMessageID        string
 
+	HasBeenSolicitedByListWarning bool
+
 	GuildID string
 
 	ProjectViewState []ProjectViewState
