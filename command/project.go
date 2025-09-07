@@ -160,7 +160,6 @@ func ProjectNew(s *dg.Session, i *dg.Interaction, prefix string, name string, re
 		DiscordCategoryChannelID: category.ID,
 		IssuesInputChannelID:     inputChannel.ID,
 		GeneralChannelID:         generalChannel.ID,
-		AutoListMessageID:        "", // TODO:
 		GuildID:                  i.GuildID,
 	}
 

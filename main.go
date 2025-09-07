@@ -47,6 +47,7 @@ func main() {
 	slog.Info("adding handlers...")
 
 	session.AddHandler(handler.GuildJoinHandler)
+	session.AddHandler(handler.MessageDelete)
 	session.AddHandler(handler.Router)
 
 	err = handler.RegisterCommands(session)

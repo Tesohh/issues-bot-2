@@ -14,7 +14,6 @@ type Project struct {
 	DiscordCategoryChannelID string
 	GeneralChannelID         string
 	IssuesInputChannelID     string
-	AutoListMessageID        string
 
 	HasBeenSolicitedByListWarning bool
 
