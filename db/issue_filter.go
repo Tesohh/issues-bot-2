@@ -20,7 +20,7 @@ type IssueFilter struct {
 
 func DefaultFilter() IssueFilter {
 	return IssueFilter{
-		Statuses:        []IssueStatus{IssueStatusTodo, IssueStatusWorking},
+		Statuses:        []IssueStatus{IssueStatusTodo, IssueStatusDoing},
 		Tags:            []string{},
 		PriorityRoleIDs: []string{},
 		CategoryRoleIDs: []string{},

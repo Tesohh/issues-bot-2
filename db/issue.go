@@ -11,15 +11,15 @@ import (
 type IssueStatus int
 
 const (
-	IssueStatusTodo    IssueStatus = 0
-	IssueStatusWorking IssueStatus = 1
-	IssueStatusDone    IssueStatus = 2
-	IssueStatusKilled  IssueStatus = 3
+	IssueStatusTodo      IssueStatus = 0
+	IssueStatusDoing     IssueStatus = 1
+	IssueStatusDone      IssueStatus = 2
+	IssueStatusCancelled IssueStatus = 3
 )
 
 var IssueStatusIcons = []string{"🟩", "🟦", "🟪", "🟥"}
 var IssueStatusColors = []int{0x7cb45c, 0x54acee, 0xa98ed6, 0xdd2e44}
-var IssueStatusNames = []string{"todo", "working", "done", "killed"}
+var IssueStatusNames = []string{"todo", "doing", "done", "cancelled"}
 
 type IssueKind string
 

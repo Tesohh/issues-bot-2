@@ -13,15 +13,15 @@ func makeStatusButton(state *db.ProjectViewState, dummy bool) dg.Button {
 	label := ""
 	style := dg.SecondaryButton
 	statuses := ""
-	if slices.Equal(state.Filter.Statuses, []db.IssueStatus{db.IssueStatusTodo, db.IssueStatusWorking}) {
+	if slices.Equal(state.Filter.Statuses, []db.IssueStatus{db.IssueStatusTodo, db.IssueStatusDoing}) {
 		label = "Show closed"
-		statuses = "done,killed"
-	} else if slices.Equal(state.Filter.Statuses, []db.IssueStatus{db.IssueStatusDone, db.IssueStatusKilled}) {
+		statuses = "done,cancelled"
+	} else if slices.Equal(state.Filter.Statuses, []db.IssueStatus{db.IssueStatusDone, db.IssueStatusCancelled}) {
 		label = "Show open"
-		statuses = "todo,working"
+		statuses = "todo,doing"
 	} else {
 		label = "Reset statuses"
-		statuses = "todo,working"
+		statuses = "todo,doing"
 	}
 	return dg.Button{
 		Label:    label,
