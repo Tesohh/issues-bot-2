@@ -47,7 +47,9 @@ func MakeIssueMainDetail(issue *db.Issue, nobodyRoleID string) dg.Container {
 
 func MakeIssueThreadDetail(issue *db.Issue, nobodyRoleID string) []dg.MessageComponent {
 	allComponents := []dg.MessageComponent{
+		// ...
 		MakeIssueMainDetail(issue, nobodyRoleID),
+		// ...
 	}
 
 	return allComponents
