@@ -2,6 +2,7 @@ package command
 
 import (
 	"issues/v2/db"
+	"issues/v2/logic"
 	"issues/v2/slash"
 	"slices"
 
@@ -86,7 +87,13 @@ var Issue = slash.Command{
 		subcommand := i.ApplicationCommandData().Options[0]
 		options := slash.GetOptionMapRaw(subcommand.Options)
 
-		var query gorm.ChainInterface[db.Issue]
+		query := db.Issues.
+			Preload("AssigneeUsers", nil).
+			Preload("Project", func(db gorm.PreloadBuilder) error {
+				db.Select("ID", "Prefix")
+				return nil
+			})
+
 		if codeOpt, ok := options["code"]; ok {
 			code := codeOpt.IntValue()
 			channel, err := s.Channel(i.ChannelID)
@@ -103,11 +110,11 @@ var Issue = slash.Command{
 				return err
 			}
 
-			query = db.Issues.
+			query = query.
 				Where("code = ?", code).
 				Where("project_id = ?", project.ID)
 		} else {
-			query = db.Issues.Where("thread_id = ?", i.ChannelID)
+			query = query.Where("thread_id = ?", i.ChannelID)
 		}
 		issue, err := query.First(db.Ctx)
 		if err == gorm.ErrRecordNotFound {
@@ -124,8 +131,13 @@ var Issue = slash.Command{
 			return err
 		}
 
-		// also update the issue view if there were no errors
-		return nil
+		guild, err := db.Guilds.Select("nobody_role_id").Where("id = ?", i.GuildID).First(db.Ctx)
+		if err != nil {
+			return err
+		}
+		err = logic.UpdateIssueThreadDetail(s, &issue, guild.NobodyRoleID)
+
+		return err
 	},
 }
 
@@ -136,14 +148,24 @@ func IssueAssign(s *discordgo.Session, i *discordgo.Interaction, issue *db.Issue
 
 	if index == -1 {
 		issue.AssigneeUsers = append(issue.AssigneeUsers, db.User{ID: assignee.ID})
+		err := db.Conn.Table("issue_assignees").
+			Create(map[string]any{
+				"issue_id": issue.ID,
+				"user_id":  assignee.ID,
+			}).Error
+		if err != nil {
+			return err
+		}
 	} else {
 		issue.AssigneeUsers = slices.Delete(issue.AssigneeUsers, index, index+1)
+		err := db.Conn.Table("issue_assignees").
+			Where("issue_id = ?", issue.ID).
+			Where("user_id = ?", assignee.ID).
+			Delete(map[string]any{}).Error
+		if err != nil {
+			return err
+		}
 	}
 
-	_, err := db.Issues.Updates(db.Ctx, *issue)
-	if err != nil {
-		return err
-	}
-
-	return err
+	return nil
 }
