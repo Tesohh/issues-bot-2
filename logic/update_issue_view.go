@@ -53,7 +53,7 @@ func UpdateAllInteractiveIssuesViews(s *dg.Session, projectID uint) error {
 		return err
 	}
 	for i := range project.Issues {
-		project.Issues[i].Project = project
+		project.Issues[i].Project.GuildID = project.GuildID
 	}
 
 	states, err := db.ProjectViewStates.Where("project_id = ?", projectID).Find(db.Ctx)

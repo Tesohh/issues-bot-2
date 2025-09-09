@@ -27,6 +27,11 @@ var List = slash.Command{
 						MinLength:   slash.Ptr(3),
 						MaxLength:   3,
 					},
+					{
+						Type:        dg.ApplicationCommandOptionBoolean,
+						Name:        "detached",
+						Description: "if true, the message will be sent as a message and not a reply",
+					},
 				},
 			},
 		},
@@ -78,9 +83,23 @@ var List = slash.Command{
 				Sorter:    db.DefaultSorter(),
 			}
 
-			err = logic.InitIssueView(s, i, &state, false)
-			if err != nil {
-				return err
+			detached := false
+			if detachedOpt, ok := options["detached"]; ok {
+				detached = detachedOpt.BoolValue()
+			}
+			if detached {
+				slash.ReplyWithText(s, i, "loading", true)
+				s.InteractionResponseDelete(i)
+
+				err = logic.InitIssueViewDetached(s, i, i.ChannelID, &state)
+				if err != nil {
+					return err
+				}
+			} else {
+				err = logic.InitIssueView(s, i, &state, false)
+				if err != nil {
+					return err
+				}
 			}
 
 			// solicitation
