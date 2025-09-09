@@ -2,6 +2,7 @@ package command
 
 import (
 	"fmt"
+	"issues/v2/data"
 	"issues/v2/db"
 	"issues/v2/logic"
 	"issues/v2/slash"
@@ -26,12 +27,14 @@ var New = slash.Command{
 			{
 				Name:        "category",
 				Description: "what's the category of this issue (ie. FEATURE, FIX, OPTIMIZATION, REFACTOR, CHORE)",
-				Type:        dg.ApplicationCommandOptionRole,
+				Type:        dg.ApplicationCommandOptionString,
+				Choices:     data.CategoryOptionChoices,
 			},
 			{
 				Name:        "priority",
 				Description: "what's the priority of this issue (ie. LOW, NEXT VERSION, RELEASE, IMPORTANT, CRITICAL)",
-				Type:        dg.ApplicationCommandOptionRole,
+				Type:        dg.ApplicationCommandOptionString,
+				Choices:     data.PriorityOptionChoices,
 			},
 			{
 				Name:        "tags",
@@ -90,9 +93,10 @@ var New = slash.Command{
 
 		categoryRoleID := guild.GenericCategoryRoleID
 		if categoryRoleOpt, ok := opts["category"]; ok {
-			possibleID := categoryRoleOpt.Value.(string)
+			key := categoryRoleOpt.StringValue()
 			role, err := db.Roles.
-				Where("id = ?", possibleID).
+				Select("id").
+				Where("key = ?", key).
 				Where("guild_id = ?", i.GuildID).
 				Where("kind = ?", db.RoleKindCategory).
 				First(db.Ctx)
@@ -103,9 +107,10 @@ var New = slash.Command{
 
 		priorityRoleID := guild.NormalPriorityRoleID
 		if priorityRoleOpt, ok := opts["priority"]; ok {
-			possibleID := priorityRoleOpt.Value.(string)
+			key := priorityRoleOpt.StringValue()
 			role, err := db.Roles.
-				Where("id = ?", possibleID).
+				Select("id").
+				Where("key = ?", key).
 				Where("guild_id = ?", i.GuildID).
 				Where("kind = ?", db.RoleKindPriority).
 				First(db.Ctx)

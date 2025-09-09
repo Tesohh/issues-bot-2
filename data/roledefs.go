@@ -62,8 +62,8 @@ var CategoryOptionChoices = []*dg.ApplicationCommandOptionChoice{
 }
 
 var PriorityOptionChoices = []*dg.ApplicationCommandOptionChoice{
-	LowPriorityRole.AsChoice(),
-	NormalPriorityRole.AsChoice(),
-	ImportantPriorityRole.AsChoice(),
 	CriticalPriorityRole.AsChoice(),
+	ImportantPriorityRole.AsChoice(),
+	NormalPriorityRole.AsChoice(),
+	LowPriorityRole.AsChoice(),
 }
