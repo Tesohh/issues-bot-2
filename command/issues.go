@@ -247,6 +247,11 @@ func IssueRename(s *dg.Session, i *dg.Interaction, issue *db.Issue, title string
 		return err
 	}
 
+	_, err = s.ChannelEdit(issue.ThreadID, &dg.ChannelEdit{Name: issue.ChannelName()})
+	if err != nil {
+		return err
+	}
+
 	msg := fmt.Sprintf("<@%s> updated the title to \"%s\"", i.Member.User.ID, title)
 	return slash.ReplyWithText(s, i, msg, false)
 }
