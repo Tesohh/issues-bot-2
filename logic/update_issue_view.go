@@ -52,12 +52,15 @@ func UpdateAllInteractiveIssuesViews(s *dg.Session, projectID uint) error {
 	if err != nil {
 		return err
 	}
+	for i := range project.Issues {
+		project.Issues[i].Project = project
+	}
 
 	states, err := db.ProjectViewStates.Where("project_id = ?", projectID).Find(db.Ctx)
 	if err != nil {
 		return err
 	}
-	// TODO: add warning message for having too many lsits as this can be slow
+
 	for _, state := range states {
 		if !state.Permanent && time.Since(state.UpdatedAt) > 24*time.Hour {
 			state.DeletedAt.Valid = true
