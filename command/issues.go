@@ -1,6 +1,7 @@
 package command
 
 import (
+	"fmt"
 	"issues/v2/db"
 	"issues/v2/logic"
 	"issues/v2/slash"
@@ -81,6 +82,17 @@ var Issue = slash.Command{
 					&codeOpt,
 				},
 			},
+			{
+				Type:        dg.ApplicationCommandOptionSubCommandGroup,
+				Name:        "mark",
+				Description: "marks the issue as ...",
+				Options: []*dg.ApplicationCommandOption{
+					{Type: dg.ApplicationCommandOptionSubCommand, Name: "todo", Description: "🟩 todo"},
+					{Type: dg.ApplicationCommandOptionSubCommand, Name: "doing", Description: "🟦 doing"},
+					{Type: dg.ApplicationCommandOptionSubCommand, Name: "done", Description: "🟪 done"},
+					{Type: dg.ApplicationCommandOptionSubCommand, Name: "cancelled", Description: "🟥 cancelled"},
+				},
+			},
 		},
 	},
 	Func: func(s *dg.Session, i *dg.Interaction) error {
@@ -125,6 +137,9 @@ var Issue = slash.Command{
 		case "assign":
 			assignee := options["assignee"].UserValue(s)
 			err = IssueAssign(s, i, &issue, assignee)
+		case "mark":
+			arg := subcommand.Options[0].Name
+			fmt.Printf("arg: %v\n", arg)
 		}
 
 		if err != nil {
@@ -146,6 +161,7 @@ func IssueAssign(s *discordgo.Session, i *discordgo.Interaction, issue *db.Issue
 		return user.ID == assignee.ID
 	})
 
+	msgFmt := ""
 	if index == -1 {
 		issue.AssigneeUsers = append(issue.AssigneeUsers, db.User{ID: assignee.ID})
 		err := db.Conn.Table("issue_assignees").
@@ -156,6 +172,8 @@ func IssueAssign(s *discordgo.Session, i *discordgo.Interaction, issue *db.Issue
 		if err != nil {
 			return err
 		}
+
+		msgFmt = "<@%s> added <@%s> to assignees"
 	} else {
 		issue.AssigneeUsers = slices.Delete(issue.AssigneeUsers, index, index+1)
 		err := db.Conn.Table("issue_assignees").
@@ -165,7 +183,9 @@ func IssueAssign(s *discordgo.Session, i *discordgo.Interaction, issue *db.Issue
 		if err != nil {
 			return err
 		}
+		msgFmt = "<@%s> removed <@%s> from assignees"
 	}
 
-	return nil
+	msg := fmt.Sprintf(msgFmt, i.Member.User.ID, assignee.ID)
+	return slash.ReplyWithText(s, i, msg, false)
 }

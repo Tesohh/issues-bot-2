@@ -4,6 +4,15 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+func ReplyWithText(s *discordgo.Session, i *discordgo.Interaction, content string, ephemeral bool) error {
+	return s.InteractionRespond(i, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Content: content,
+		},
+	})
+}
+
 func ReplyWithEmbed(s *discordgo.Session, i *discordgo.Interaction, embed discordgo.MessageEmbed, ephemeral bool) error {
 	embed = standardizeEmbed(embed)
 
