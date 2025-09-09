@@ -76,6 +76,7 @@ var Issue = slash.Command{
 						Type:        dg.ApplicationCommandOptionString,
 						Name:        "title",
 						Description: "the new title",
+						MinLength:   slash.Ptr(1),
 						Required:    true,
 					},
 					&codeOpt,
@@ -139,6 +140,9 @@ var Issue = slash.Command{
 		case "category", "priority":
 			role := options["role"].RoleValue(nil, i.GuildID)
 			err = IssueCategoryOrPriority(s, i, &issue, role, subcommand.Name)
+		case "rename":
+			title := options["title"].StringValue()
+			err = IssueRename(s, i, &issue, title)
 		case "mark":
 			arg := subcommand.Options[0].Name
 			fmt.Printf("arg: %v\n", arg)
@@ -222,3 +226,25 @@ func IssueCategoryOrPriority(s *dg.Session, i *dg.Interaction, issue *db.Issue, 
 	msg := fmt.Sprintf("<@%s> updated %s to <@&%s>", i.Member.User.ID, subcommand, role.ID)
 	return slash.ReplyWithText(s, i, msg, false)
 }
+
+func IssueRename(s *dg.Session, i *dg.Interaction, issue *db.Issue, title string) error {
+	issue.Title = title
+	_, err := db.Issues.Where("id = ?", issue.ID).Update(db.Ctx, "title", title)
+	if err != nil {
+		return err
+	}
+
+	msg := fmt.Sprintf("<@%s> updated the title to \"%s\"", i.Member.User.ID, title)
+	return slash.ReplyWithText(s, i, msg, false)
+}
+
+// func IssueMark(s *dg.Session, i *dg.Interaction, issue *db.Issue, title string) error {
+// 	issue.Status = title
+// 	_, err := db.Issues.Where("id = ?", issue.ID).Update(db.Ctx, "title", title)
+// 	if err != nil {
+// 		return err
+// 	}
+//
+// 	msg := fmt.Sprintf("<@%s> updated the title to \"%s\"", i.Member.User.ID, title)
+// 	return slash.ReplyWithText(s, i, msg, false)
+// }
