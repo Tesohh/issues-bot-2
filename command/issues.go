@@ -2,6 +2,7 @@ package command
 
 import (
 	"fmt"
+	"issues/v2/data"
 	"issues/v2/db"
 	"issues/v2/logic"
 	"issues/v2/slash"
@@ -46,9 +47,10 @@ var Issue = slash.Command{
 				Description: "changes the category of the issue",
 				Options: []*dg.ApplicationCommandOption{
 					{
-						Type:        dg.ApplicationCommandOptionRole,
+						Type:        dg.ApplicationCommandOptionString,
 						Name:        "role",
 						Description: "role to set as category",
+						Choices:     data.CategoryOptionChoices,
 						Required:    true,
 					},
 					&codeOpt,
@@ -60,9 +62,10 @@ var Issue = slash.Command{
 				Description: "changes the priority of the issue",
 				Options: []*dg.ApplicationCommandOption{
 					{
-						Type:        dg.ApplicationCommandOptionRole,
+						Type:        dg.ApplicationCommandOptionString,
 						Name:        "role",
 						Description: "role to set as priority",
+						Choices:     data.PriorityOptionChoices,
 						Required:    true,
 					},
 					&codeOpt,
@@ -139,8 +142,16 @@ var Issue = slash.Command{
 			assignee := options["assignee"].UserValue(nil)
 			err = IssueAssign(s, i, &issue, assignee)
 		case "category", "priority":
-			role := options["role"].RoleValue(nil, i.GuildID)
-			err = IssueCategoryOrPriority(s, i, &issue, role, subcommand.Name)
+			key := options["role"].StringValue()
+			role, err := db.Roles.
+				Select("id, kind").
+				Where("key = ?", key).
+				Where("guild_id = ?", i.GuildID).
+				First(db.Ctx)
+			if err != nil {
+				return err
+			}
+			err = IssueCategoryOrPriority(s, i, &issue, &role, subcommand.Name)
 		case "rename":
 			title := options["title"].StringValue()
 			err = IssueRename(s, i, &issue, title)
@@ -205,16 +216,11 @@ func IssueAssign(s *dg.Session, i *dg.Interaction, issue *db.Issue, assignee *dg
 	return slash.ReplyWithText(s, i, msg, false)
 }
 
-func IssueCategoryOrPriority(s *dg.Session, i *dg.Interaction, issue *db.Issue, role *dg.Role, subcommand string) error {
-	dbRole, err := db.Roles.Select("kind").Where("id = ?", role.ID).First(db.Ctx)
-	if err != nil {
-		return fmt.Errorf("%w (role not registered)", ErrWrongRole)
-	}
-
+func IssueCategoryOrPriority(s *dg.Session, i *dg.Interaction, issue *db.Issue, role *db.Role, subcommand string) error {
 	switch subcommand {
 	case "priority":
-		if dbRole.Kind != db.RoleKindPriority {
-			return fmt.Errorf("%w (expected priority, got %s)", ErrWrongRole, dbRole.Kind)
+		if role.Kind != db.RoleKindPriority {
+			return fmt.Errorf("%w (expected priority, got %s)", ErrWrongRole, role.Kind)
 		}
 		if issue.PriorityRoleID == role.ID {
 			msg := fmt.Sprintf("Priority was already <@&%s>, no actions taken.", role.ID)
@@ -226,8 +232,8 @@ func IssueCategoryOrPriority(s *dg.Session, i *dg.Interaction, issue *db.Issue, 
 			return err
 		}
 	case "category":
-		if dbRole.Kind != db.RoleKindCategory {
-			return fmt.Errorf("%w (expected category, got %s)", ErrWrongRole, dbRole.Kind)
+		if role.Kind != db.RoleKindCategory {
+			return fmt.Errorf("%w (expected category, got %s)", ErrWrongRole, role.Kind)
 		}
 		if issue.CategoryRoleID == role.ID {
 			msg := fmt.Sprintf("Category was already <@&%s>, no actions taken.", role.ID)
