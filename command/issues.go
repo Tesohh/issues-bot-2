@@ -7,7 +7,6 @@ import (
 	"issues/v2/slash"
 	"slices"
 
-	"github.com/bwmarrin/discordgo"
 	dg "github.com/bwmarrin/discordgo"
 	"gorm.io/gorm"
 )
@@ -135,8 +134,11 @@ var Issue = slash.Command{
 
 		switch subcommand.Name {
 		case "assign":
-			assignee := options["assignee"].UserValue(s)
+			assignee := options["assignee"].UserValue(nil)
 			err = IssueAssign(s, i, &issue, assignee)
+		case "category", "priority":
+			role := options["role"].RoleValue(nil, i.GuildID)
+			err = IssueCategoryOrPriority(s, i, &issue, role, subcommand.Name)
 		case "mark":
 			arg := subcommand.Options[0].Name
 			fmt.Printf("arg: %v\n", arg)
@@ -156,7 +158,7 @@ var Issue = slash.Command{
 	},
 }
 
-func IssueAssign(s *discordgo.Session, i *discordgo.Interaction, issue *db.Issue, assignee *dg.User) error {
+func IssueAssign(s *dg.Session, i *dg.Interaction, issue *db.Issue, assignee *dg.User) error {
 	index := slices.IndexFunc(issue.AssigneeUsers, func(user db.User) bool {
 		return user.ID == assignee.ID
 	})
@@ -187,5 +189,36 @@ func IssueAssign(s *discordgo.Session, i *discordgo.Interaction, issue *db.Issue
 	}
 
 	msg := fmt.Sprintf(msgFmt, i.Member.User.ID, assignee.ID)
+	return slash.ReplyWithText(s, i, msg, false)
+}
+
+func IssueCategoryOrPriority(s *dg.Session, i *dg.Interaction, issue *db.Issue, role *dg.Role, subcommand string) error {
+	dbRole, err := db.Roles.Select("kind").Where("id = ?", role.ID).First(db.Ctx)
+	if err != nil {
+		return fmt.Errorf("%w (role not registered)", ErrWrongRole)
+	}
+
+	switch subcommand {
+	case "priority":
+		if dbRole.Kind != db.RoleKindPriority {
+			return fmt.Errorf("%w (expected priority, got %s)", ErrWrongRole, dbRole.Kind)
+		}
+		issue.PriorityRoleID = role.ID
+		_, err := db.Issues.Where("id = ?", issue.ID).Update(db.Ctx, "priority_role_id", role.ID)
+		if err != nil {
+			return err
+		}
+	case "category":
+		if dbRole.Kind != db.RoleKindCategory {
+			return fmt.Errorf("%w (expected category, got %s)", ErrWrongRole, dbRole.Kind)
+		}
+		issue.CategoryRoleID = role.ID
+		_, err := db.Issues.Where("id = ?", issue.ID).Update(db.Ctx, "category_role_id", role.ID)
+		if err != nil {
+			return err
+		}
+	}
+
+	msg := fmt.Sprintf("<@%s> updated %s to <@&%s>", i.Member.User.ID, subcommand, role.ID)
 	return slash.ReplyWithText(s, i, msg, false)
 }
