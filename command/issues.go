@@ -5,6 +5,7 @@ import (
 	"issues/v2/db"
 	"issues/v2/logic"
 	"issues/v2/slash"
+	"log/slog"
 	"slices"
 
 	dg "github.com/bwmarrin/discordgo"
@@ -145,7 +146,7 @@ var Issue = slash.Command{
 			err = IssueRename(s, i, &issue, title)
 		case "mark":
 			arg := subcommand.Options[0].Name
-			fmt.Printf("arg: %v\n", arg)
+			err = IssueMark(s, i, &issue, arg)
 		}
 
 		if err != nil {
@@ -157,8 +158,16 @@ var Issue = slash.Command{
 			return err
 		}
 		err = logic.UpdateIssueThreadDetail(s, &issue, guild.NobodyRoleID)
+		if err != nil {
+			return err
+		}
 
-		return err
+		err = logic.UpdateAllInteractiveIssuesViews(s, issue.ProjectID)
+		if err != nil {
+			return err
+		}
+
+		return nil
 	},
 }
 
@@ -256,13 +265,68 @@ func IssueRename(s *dg.Session, i *dg.Interaction, issue *db.Issue, title string
 	return slash.ReplyWithText(s, i, msg, false)
 }
 
-// func IssueMark(s *dg.Session, i *dg.Interaction, issue *db.Issue, title string) error {
-// 	issue.Status = title
-// 	_, err := db.Issues.Where("id = ?", issue.ID).Update(db.Ctx, "title", title)
-// 	if err != nil {
-// 		return err
-// 	}
-//
-// 	msg := fmt.Sprintf("<@%s> updated the title to \"%s\"", i.Member.User.ID, title)
-// 	return slash.ReplyWithText(s, i, msg, false)
-// }
+var marksPerIssue = map[uint]int{}
+
+func IssueMark(s *dg.Session, i *dg.Interaction, issue *db.Issue, subcommand string) error {
+	var issueStatus db.IssueStatus
+	var archive = false
+	var lock = false
+	var autoArchiveDuration = 10080
+	switch subcommand {
+	case "todo":
+		issueStatus = db.IssueStatusTodo
+	case "doing":
+		issueStatus = db.IssueStatusDoing
+	case "done":
+		issueStatus = db.IssueStatusDone
+		archive = true
+		autoArchiveDuration = 60
+	case "cancelled":
+		issueStatus = db.IssueStatusCancelled
+		archive = true
+		lock = true
+		autoArchiveDuration = 60
+	}
+
+	if issue.Status == issueStatus {
+		msg := fmt.Sprintf("Status was already %s, no actions taken.", subcommand)
+		return slash.ReplyWithText(s, i, msg, true)
+	}
+
+	issue.Status = issueStatus
+	_, err := db.Issues.Where("id = ?", issue.ID).Update(db.Ctx, "status", issueStatus)
+	if err != nil {
+		return err
+	}
+
+	go func() {
+		_, err = s.ChannelEdit(issue.ThreadID, &dg.ChannelEdit{
+			Name:                issue.ChannelName(),
+			AutoArchiveDuration: autoArchiveDuration,
+			Locked:              &lock,
+		})
+		if err != nil {
+			slog.Error("error while trying to edit thread.", "err", err)
+			return
+		}
+	}()
+
+	// and finally send the embed
+	var alsoWillArchiveString string
+	if archive {
+		alsoWillArchiveString = ", thread will be archived in 1 hour if inactive"
+	}
+
+	if _, ok := marksPerIssue[issue.ID]; !ok {
+		marksPerIssue[issue.ID] = 0
+	}
+	marksPerIssue[issue.ID] += 1
+
+	var warnString string
+	if marksPerIssue[issue.ID] >= 3 {
+		warnString = "-# ⚠️ due to discord ratelimits the channel name might not update for a long time"
+	}
+
+	msg := fmt.Sprintf("<@%s> marked the issue as %s %s%s\n%s", i.Member.User.ID, db.IssueStatusIcons[issueStatus], db.IssueStatusNames[issueStatus], alsoWillArchiveString, warnString)
+	return slash.ReplyWithText(s, i, msg, false)
+}
