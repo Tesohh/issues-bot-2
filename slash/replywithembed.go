@@ -5,10 +5,17 @@ import (
 )
 
 func ReplyWithText(s *discordgo.Session, i *discordgo.Interaction, content string, ephemeral bool) error {
+
+	var flags discordgo.MessageFlags
+	if ephemeral {
+		flags = discordgo.MessageFlagsEphemeral
+	}
+
 	return s.InteractionRespond(i, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Content: content,
+			Flags:   flags,
 		},
 	})
 }

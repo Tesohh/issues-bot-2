@@ -207,6 +207,10 @@ func IssueCategoryOrPriority(s *dg.Session, i *dg.Interaction, issue *db.Issue, 
 		if dbRole.Kind != db.RoleKindPriority {
 			return fmt.Errorf("%w (expected priority, got %s)", ErrWrongRole, dbRole.Kind)
 		}
+		if issue.PriorityRoleID == role.ID {
+			msg := fmt.Sprintf("Priority was already <@&%s>, no actions taken.", role.ID)
+			return slash.ReplyWithText(s, i, msg, true)
+		}
 		issue.PriorityRoleID = role.ID
 		_, err := db.Issues.Where("id = ?", issue.ID).Update(db.Ctx, "priority_role_id", role.ID)
 		if err != nil {
@@ -215,6 +219,10 @@ func IssueCategoryOrPriority(s *dg.Session, i *dg.Interaction, issue *db.Issue, 
 	case "category":
 		if dbRole.Kind != db.RoleKindCategory {
 			return fmt.Errorf("%w (expected category, got %s)", ErrWrongRole, dbRole.Kind)
+		}
+		if issue.CategoryRoleID == role.ID {
+			msg := fmt.Sprintf("Category was already <@&%s>, no actions taken.", role.ID)
+			return slash.ReplyWithText(s, i, msg, true)
 		}
 		issue.CategoryRoleID = role.ID
 		_, err := db.Issues.Where("id = ?", issue.ID).Update(db.Ctx, "category_role_id", role.ID)
@@ -228,6 +236,11 @@ func IssueCategoryOrPriority(s *dg.Session, i *dg.Interaction, issue *db.Issue, 
 }
 
 func IssueRename(s *dg.Session, i *dg.Interaction, issue *db.Issue, title string) error {
+	if issue.Title == title {
+		msg := "Title was already that, no actions taken."
+		return slash.ReplyWithText(s, i, msg, true)
+	}
+
 	issue.Title = title
 	_, err := db.Issues.Where("id = ?", issue.ID).Update(db.Ctx, "title", title)
 	if err != nil {
