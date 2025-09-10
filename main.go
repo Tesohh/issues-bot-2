@@ -48,6 +48,7 @@ func main() {
 
 	session.AddHandler(handler.GuildJoinHandler)
 	session.AddHandler(handler.MessageDelete)
+	session.AddHandler(handler.MessageCreate)
 	session.AddHandler(handler.Router)
 
 	err = handler.RegisterCommands(session)
