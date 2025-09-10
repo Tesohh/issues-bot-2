@@ -8,7 +8,7 @@ import (
 	dg "github.com/bwmarrin/discordgo"
 )
 
-func InitIssueThread(issue *db.Issue, guild *db.Guild, thread *dg.Channel, s *dg.Session, i *dg.Interaction) error {
+func InitIssueThread(issue *db.Issue, guild *db.Guild, thread *dg.Channel, s *dg.Session) error {
 	// we don't need to send any temporary messges. you are automatically mentioned as expected with cv2
 
 	components := dataview.MakeIssueThreadDetail(issue, guild.NobodyRoleID)

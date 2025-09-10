@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"issues/v2/db"
+	"issues/v2/logic"
 	"log/slog"
 	"regexp"
 	"strings"
@@ -59,12 +60,15 @@ func messageCreate(s *dg.Session, m *dg.MessageCreate) error {
 
 	// get the guild
 	guild, err := db.Guilds.
-		Select("id, generic_category_role_id, normal_priority_role_id").
+		Select("id, generic_category_role_id, normal_priority_role_id, nobody_role_id").
 		Where("id = ?", m.GuildID).
 		First(db.Ctx)
 	if err != nil {
 		return err
 	}
+
+	// delete the message
+	_ = s.ChannelMessageDelete(m.ChannelID, m.ID)
 
 	// parse the message
 	captures := parserCaptures{}
@@ -105,7 +109,7 @@ func messageCreate(s *dg.Session, m *dg.MessageCreate) error {
 		}
 	}
 
-	// TODO assignees
+	// do assignees
 	assignees := []db.User{}
 	if !mentions.nobody && len(captures.UserIDs) == 0 {
 		assignees = append(assignees, db.User{ID: m.Author.ID})
@@ -117,18 +121,42 @@ func messageCreate(s *dg.Session, m *dg.MessageCreate) error {
 
 	tags := strings.Join(captures.Tags, ",")
 
+	// define the issue
 	issue := db.Issue{
 		Title:           title,
 		Tags:            tags,
 		Status:          db.IssueStatusTodo,
 		ProjectID:       project.ID,
+		Project:         project,
 		RecruiterUserID: m.Author.ID,
 		AssigneeUsers:   assignees,
 		CategoryRoleID:  mentions.categoryRoleID,
 		PriorityRoleID:  mentions.priorityRoleID,
 	}
 
-	fmt.Printf("issue: %#v\n", issue)
+	code, err := logic.GetIssueCode(&issue)
+	if err != nil {
+		return fmt.Errorf("error in issue db insertion: %w", err)
+	}
+	issue.Code = &code
 
-	return nil
+	// create and initialize the thread
+	thread, err := logic.CreateThreadFromIssue(&issue, s)
+	if err != nil {
+		return fmt.Errorf("error in thread creation: %w", err)
+	}
+
+	err = logic.InitIssueThread(&issue, &guild, thread, s)
+	if err != nil {
+		return err
+	}
+
+	// add the issue to db
+	err = db.Issues.Create(db.Ctx, &issue)
+	if err != nil {
+		return err
+	}
+
+	// update all lists
+	return logic.UpdateAllInteractiveIssuesViews(s, project.ID)
 }

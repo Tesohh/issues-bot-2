@@ -10,7 +10,7 @@ import (
 // expects issue.Project to be set
 //
 // also updates the DB entry for that issue with the new ThreadID
-func CreateThreadFromIssue(issue *db.Issue, s *dg.Session, i *dg.Interaction) (*dg.Channel, error) {
+func CreateThreadFromIssue(issue *db.Issue, s *dg.Session) (*dg.Channel, error) {
 	thread, err := s.ThreadStart(issue.Project.IssuesInputChannelID, issue.ChannelName(), dg.ChannelTypeGuildPublicThread, 10080)
 	if err != nil {
 		return nil, err

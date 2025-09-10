@@ -154,12 +154,12 @@ var New = slash.Command{
 		}
 
 		issue.Project = project
-		thread, err := logic.CreateThreadFromIssue(issue, s, i)
+		thread, err := logic.CreateThreadFromIssue(issue, s)
 		if err != nil {
 			return fmt.Errorf("error in thread creation: %w", err)
 		}
 
-		err = logic.InitIssueThread(issue, &guild, thread, s, i)
+		err = logic.InitIssueThread(issue, &guild, thread, s)
 		if err != nil {
 			return err
 		}
