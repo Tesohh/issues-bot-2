@@ -8,6 +8,7 @@ import (
 	"issues/v2/slash"
 	"log/slog"
 	"slices"
+	"strings"
 
 	dg "github.com/bwmarrin/discordgo"
 	"gorm.io/gorm"
@@ -97,6 +98,40 @@ var Issue = slash.Command{
 					{Type: dg.ApplicationCommandOptionSubCommand, Name: "cancelled", Description: "🟥 cancelled"},
 				},
 			},
+			{
+				Type:        dg.ApplicationCommandOptionSubCommand,
+				Name:        "tag",
+				Description: "toggles a tag on the issue",
+				Options: []*dg.ApplicationCommandOption{
+					{
+						Type:         dg.ApplicationCommandOptionString,
+						Name:         "tag",
+						Description:  "the tag to toggle",
+						Required:     true,
+						Autocomplete: false,
+						MinLength:    new(int),
+						MaxLength:    0,
+					},
+					&codeOpt,
+				},
+			},
+			{
+				Type:        dg.ApplicationCommandOptionSubCommand,
+				Name:        "tags",
+				Description: "replaces tags with the list of tags provided",
+				Options: []*dg.ApplicationCommandOption{
+					{
+						Type:         dg.ApplicationCommandOptionString,
+						Name:         "tags",
+						Description:  "the comma separated tags to replace",
+						Required:     true,
+						Autocomplete: false,
+						MinLength:    new(int),
+						MaxLength:    0,
+					},
+					&codeOpt,
+				},
+			},
 		},
 	},
 	Func: func(s *dg.Session, i *dg.Interaction) error {
@@ -158,6 +193,9 @@ var Issue = slash.Command{
 		case "mark":
 			arg := subcommand.Options[0].Name
 			err = IssueMark(s, i, &issue, arg)
+		case "tag":
+			tag := options["tag"].StringValue()
+			err = IssueTag(s, i, &issue, tag)
 		}
 
 		if err != nil {
@@ -334,5 +372,29 @@ func IssueMark(s *dg.Session, i *dg.Interaction, issue *db.Issue, subcommand str
 	}
 
 	msg := fmt.Sprintf("<@%s> marked the issue as %s %s%s\n%s", i.Member.User.ID, db.IssueStatusIcons[issueStatus], db.IssueStatusNames[issueStatus], alsoWillArchiveString, warnString)
+	return slash.ReplyWithText(s, i, msg, false)
+}
+
+func IssueTag(s *dg.Session, i *dg.Interaction, issue *db.Issue, tag string) error {
+	tag = strings.Trim(tag, "+ ")
+	tags := issue.ParseTags()
+	index := slices.Index(tags, tag)
+
+	msgFmt := ""
+	if index == -1 { // doesn't exist, create it
+		tags = append(tags, tag)
+		issue.Tags += "," + tag
+		msgFmt = "<@%s> added tag `+%s`"
+	} else {
+		tags = slices.Delete(tags, index, index+1)
+		issue.Tags = strings.Join(tags, ",")
+		msgFmt = "<@%s> removed tag `+%s`"
+	}
+	_, err := db.Issues.Where("id = ?", issue.ID).Update(db.Ctx, "tags", issue.Tags)
+	if err != nil {
+		return err
+	}
+
+	msg := fmt.Sprintf(msgFmt, i.Member.User.ID, tag)
 	return slash.ReplyWithText(s, i, msg, false)
 }

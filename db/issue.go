@@ -63,15 +63,19 @@ type Issue struct {
 	MessageID string
 }
 
-func (issue *Issue) ParseTags() []string {
+func ParseTags(raw string) []string {
 	tags := []string{}
-	for rawTag := range strings.SplitSeq(issue.Tags, ",") {
-		trim := strings.Trim(rawTag, " ")
+	for rawTag := range strings.SplitSeq(raw, ",") {
+		trim := strings.Trim(rawTag, " +")
 		if len(trim) > 0 {
 			tags = append(tags, trim)
 		}
 	}
 	return tags
+}
+
+func (issue *Issue) ParseTags() []string {
+	return ParseTags(issue.Tags)
 }
 
 // Requires issue.Project.Prefix to be set, or else the prefix will be ???
