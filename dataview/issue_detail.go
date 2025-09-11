@@ -21,7 +21,7 @@ func MakeIssueMainDetail(issue *db.Issue, nobodyRoleID string) dg.Container {
 		assigneeStr = slash.MentionMany(assigneeIDs, "@", ", ")
 	}
 
-	return dg.Container{
+	container := dg.Container{
 		AccentColor: slash.Ptr(slash.EmbedColor),
 		Components: []dg.MessageComponent{
 			dg.TextDisplay{
@@ -43,6 +43,14 @@ func MakeIssueMainDetail(issue *db.Issue, nobodyRoleID string) dg.Container {
 			},
 		},
 	}
+
+	if len(issue.ParseTags()) > 0 {
+		container.Components = append(container.Components, dg.Separator{}, dg.TextDisplay{
+			Content: fmt.Sprintf("**Tags**: %s", issue.PrettyTags(999, 999)),
+		})
+	}
+
+	return container
 }
 
 func MakeIssueThreadDetail(issue *db.Issue, nobodyRoleID string) []dg.MessageComponent {
