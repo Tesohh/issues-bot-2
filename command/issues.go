@@ -196,6 +196,9 @@ var Issue = slash.Command{
 		case "tag":
 			tag := options["tag"].StringValue()
 			err = IssueTag(s, i, &issue, tag)
+		case "tags":
+			tags := options["tags"].StringValue()
+			err = IssueTags(s, i, &issue, tags)
 		}
 
 		if err != nil {
@@ -396,5 +399,21 @@ func IssueTag(s *dg.Session, i *dg.Interaction, issue *db.Issue, tag string) err
 	}
 
 	msg := fmt.Sprintf(msgFmt, i.Member.User.ID, tag)
+	return slash.ReplyWithText(s, i, msg, false)
+}
+
+func IssueTags(s *dg.Session, i *dg.Interaction, issue *db.Issue, tagsRaw string) error {
+	tags := db.ParseTags(tagsRaw)
+	// remove duplicate tags
+	slices.Sort(tags)
+	tags = slices.Compact(tags)
+
+	issue.Tags = strings.Join(tags, ",")
+	_, err := db.Issues.Where("id = ?", issue.ID).Update(db.Ctx, "tags", issue.Tags)
+	if err != nil {
+		return err
+	}
+
+	msg := fmt.Sprintf("<@%s> replaced tags with %s", i.Member.User.ID, issue.PrettyTags(999, 999))
 	return slash.ReplyWithText(s, i, msg, false)
 }

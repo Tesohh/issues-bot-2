@@ -85,7 +85,7 @@ var New = slash.Command{
 			tagsSplit = slices.Compact(tagsSplit)
 
 			for i := range tagsSplit {
-				tagsSplit[i] = strings.Trim(tagsSplit[i], " ")
+				tagsSplit[i] = strings.Trim(tagsSplit[i], " +")
 			}
 			tags = strings.Join(tagsSplit, ",")
 		}
