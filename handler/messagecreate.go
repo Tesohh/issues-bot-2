@@ -6,6 +6,7 @@ import (
 	"issues/v2/logic"
 	"log/slog"
 	"regexp"
+	"slices"
 	"strings"
 
 	dg "github.com/bwmarrin/discordgo"
@@ -119,6 +120,9 @@ func messageCreate(s *dg.Session, m *dg.MessageCreate) error {
 		}
 	}
 
+	// remove duplicate tags
+	slices.Sort(captures.Tags)
+	captures.Tags = slices.Compact(captures.Tags)
 	tags := strings.Join(captures.Tags, ",")
 
 	// define the issue

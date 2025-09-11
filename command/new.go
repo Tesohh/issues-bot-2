@@ -7,6 +7,7 @@ import (
 	"issues/v2/logic"
 	"issues/v2/slash"
 	"log/slog"
+	"slices"
 	"strings"
 
 	dg "github.com/bwmarrin/discordgo"
@@ -78,6 +79,11 @@ var New = slash.Command{
 		tags := ""
 		if tagsOpt, ok := opts["tags"]; ok {
 			tagsSplit := strings.Split(tagsOpt.StringValue(), ",")
+
+			// remove duplicate tags
+			slices.Sort(tagsSplit)
+			tagsSplit = slices.Compact(tagsSplit)
+
 			for i := range tagsSplit {
 				tagsSplit[i] = strings.Trim(tagsSplit[i], " ")
 			}
