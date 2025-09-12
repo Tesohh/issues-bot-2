@@ -44,7 +44,7 @@ func MakeIssueMainDetail(issue *db.Issue, nobodyRoleID string) dg.Container {
 		},
 	}
 
-	if len(issue.ParseTags()) > 0 {
+	if len(issue.Tags) > 0 {
 		container.Components = append(container.Components, dg.Separator{}, dg.TextDisplay{
 			Content: fmt.Sprintf("**Tags**: %s", issue.PrettyTags(999, 999)),
 		})

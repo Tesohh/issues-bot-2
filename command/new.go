@@ -89,6 +89,7 @@ var New = slash.Command{
 			}
 			tags = strings.Join(tagsSplit, ",")
 		}
+		_ = tags // DELETEME:
 
 		kind := db.IssueKindNormal
 		if discussionOpt, ok := opts["discussion"]; ok {
@@ -135,8 +136,8 @@ var New = slash.Command{
 		}
 
 		issue := &db.Issue{
-			Title:           title,
-			Tags:            tags,
+			Title: title,
+			// Tags:            tags, // TODO:
 			Kind:            kind,
 			ProjectID:       project.ID,
 			RecruiterUserID: i.Member.User.ID,

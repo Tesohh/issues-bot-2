@@ -124,11 +124,12 @@ func messageCreate(s *dg.Session, m *dg.MessageCreate) error {
 	slices.Sort(captures.Tags)
 	captures.Tags = slices.Compact(captures.Tags)
 	tags := strings.Join(captures.Tags, ",")
+	_ = tags // DELETEME:
 
 	// define the issue
 	issue := db.Issue{
-		Title:           title,
-		Tags:            tags,
+		Title: title,
+		// Tags:            tags,
 		Status:          db.IssueStatusTodo,
 		ProjectID:       project.ID,
 		Project:         project,

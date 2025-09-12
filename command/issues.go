@@ -139,6 +139,7 @@ var Issue = slash.Command{
 		options := slash.GetOptionMapRaw(subcommand.Options)
 
 		query := db.Issues.
+			Preload("Tags", nil).
 			Preload("AssigneeUsers", nil).
 			Preload("Project", func(db gorm.PreloadBuilder) error {
 				db.Select("ID", "Prefix")
@@ -378,42 +379,68 @@ func IssueMark(s *dg.Session, i *dg.Interaction, issue *db.Issue, subcommand str
 	return slash.ReplyWithText(s, i, msg, false)
 }
 
-func IssueTag(s *dg.Session, i *dg.Interaction, issue *db.Issue, tag string) error {
-	tag = strings.Trim(tag, "+ ")
-	tags := issue.ParseTags()
-	index := slices.Index(tags, tag)
+func IssueTag(s *dg.Session, i *dg.Interaction, issue *db.Issue, name string) error {
+	name = strings.Trim(name, "+ ")
+	index := slices.IndexFunc(issue.Tags, func(ltag db.Tag) bool {
+		return ltag.Name == name
+	})
 
 	msgFmt := ""
 	if index == -1 { // doesn't exist, create it
-		tags = append(tags, tag)
-		issue.Tags += "," + tag
+		// find or create the tag
+		// TODO: MOVE THIS TO A FUNC?
+		dbTag := db.Tag{
+			Name:      name,
+			ProjectID: int(issue.ProjectID),
+		}
+		err := db.Conn.FirstOrCreate(&dbTag).Error
+		if err != nil {
+			return err
+		}
+
+		issue.Tags = append(issue.Tags, dbTag)
+
+		err = db.Conn.Table("issue_tags").
+			Create(map[string]any{
+				"issue_id":       issue.ID,
+				"tag_name":       dbTag.Name,
+				"tag_project_id": dbTag.ProjectID,
+			}).Error
+		if err != nil {
+			return err
+		}
+
 		msgFmt = "<@%s> added tag `+%s`"
 	} else {
-		tags = slices.Delete(tags, index, index+1)
-		issue.Tags = strings.Join(tags, ",")
+		issue.Tags = slices.Delete(issue.Tags, index, index+1)
+		err := db.Conn.Table("issue_tags").
+			Where("issue_id = ?", issue.ID).
+			Where("tag_name = ?", name).
+			Where("tag_project_id = ?", issue.ProjectID).
+			Delete(map[string]any{}).Error
+		if err != nil {
+			return err
+		}
 		msgFmt = "<@%s> removed tag `+%s`"
 	}
-	_, err := db.Issues.Where("id = ?", issue.ID).Update(db.Ctx, "tags", issue.Tags)
-	if err != nil {
-		return err
-	}
 
-	msg := fmt.Sprintf(msgFmt, i.Member.User.ID, tag)
+	msg := fmt.Sprintf(msgFmt, i.Member.User.ID, name)
 	return slash.ReplyWithText(s, i, msg, false)
 }
 
 func IssueTags(s *dg.Session, i *dg.Interaction, issue *db.Issue, tagsRaw string) error {
-	tags := db.ParseTags(tagsRaw)
-	// remove duplicate tags
-	slices.Sort(tags)
-	tags = slices.Compact(tags)
-
-	issue.Tags = strings.Join(tags, ",")
-	_, err := db.Issues.Where("id = ?", issue.ID).Update(db.Ctx, "tags", issue.Tags)
-	if err != nil {
-		return err
-	}
-
+	// TODO:
+	// tags := db.ParseTags(tagsRaw)
+	// // remove duplicate tags
+	// slices.Sort(tags)
+	// tags = slices.Compact(tags)
+	//
+	// issue.Tags = strings.Join(tags, ",")
+	// _, err := db.Issues.Where("id = ?", issue.ID).Update(db.Ctx, "tags", issue.Tags)
+	// if err != nil {
+	// 	return err
+	// }
+	//
 	msg := fmt.Sprintf("<@%s> replaced tags with %s", i.Member.User.ID, issue.PrettyTags(999, 999))
 	return slash.ReplyWithText(s, i, msg, false)
 }

@@ -39,8 +39,8 @@ func (f IssueFilter) isValid(issue Issue) bool {
 
 	if len(f.Tags) > 0 {
 		ok := false
-		for _, tag := range issue.ParseTags() {
-			if slices.Contains(f.Tags, tag) {
+		for _, tag := range issue.Tags {
+			if slices.Contains(f.Tags, tag.Name) {
 				ok = true
 			}
 		}

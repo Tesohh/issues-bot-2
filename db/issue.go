@@ -29,11 +29,6 @@ const (
 	IssueKindDiscussion IssueKind = "discussion"
 )
 
-// (Id, Code, Title, Status, Tags, Kind {Normal, Task, Discussion},
-// ProjectID, RecruiterID, AssigneeIDs, ThreadID, MessageID, CategoryRoleID, PriorityRoleID)
-// - [ ] id = auto increment
-// - [ ] Code = max(Code)+1 for issues and discussions but NULL for tasks
-
 type Issue struct {
 	ID          uint `gorm:"primarykey"`
 	CreatedAt   time.Time
@@ -42,9 +37,10 @@ type Issue struct {
 
 	Code   *uint // for Tasks this will be nil
 	Title  string
-	Tags   string      // comma separated
 	Status IssueStatus `gorm:"check:status>=0;check:status <=3"`
 	Kind   IssueKind   `gorm:"check:kind in ('', 'task',  'discussion')"`
+
+	Tags []Tag `gorm:"many2many:issue_tags"` // comma separated
 
 	ProjectID uint
 	Project   Project
@@ -63,20 +59,20 @@ type Issue struct {
 	MessageID string
 }
 
-func ParseTags(raw string) []string {
-	tags := []string{}
-	for rawTag := range strings.SplitSeq(raw, ",") {
-		trim := strings.Trim(rawTag, " +")
-		if len(trim) > 0 {
-			tags = append(tags, trim)
-		}
-	}
-	return tags
-}
+// func ParseTags(raw string) []string {
+// 	tags := []string{}
+// 	for rawTag := range strings.SplitSeq(raw, ",") {
+// 		trim := strings.Trim(rawTag, " +")
+// 		if len(trim) > 0 {
+// 			tags = append(tags, trim)
+// 		}
+// 	}
+// 	return tags
+// }
 
-func (issue *Issue) ParseTags() []string {
-	return ParseTags(issue.Tags)
-}
+// func (issue *Issue) ParseTags() []string {
+// 	return ParseTags(issue.Tags)
+// }
 
 // Requires issue.Project.Prefix to be set, or else the prefix will be ???
 func (issue *Issue) HumanCode() string {
@@ -111,17 +107,14 @@ func (issue *Issue) CutTitle(maxTitleLength int) string {
 }
 
 func (issue *Issue) PrettyTags(maxTags int, maxTagLen int) string {
-	tags := issue.ParseTags()
-	str := ""
-	for _, tag := range tags[:min(len(tags), maxTags)] {
-		str += fmt.Sprintf("`+%s` ", helper.StrTrunc(tag, maxTagLen))
+	pretties := []string{}
+	for _, tag := range issue.Tags[:min(len(issue.Tags), maxTags)] {
+		pretties = append(pretties, tag.Pretty(maxTagLen))
 	}
-	if len(tags) > maxTags {
-		str += fmt.Sprintf("`[+%d]`", len(tags)-maxTags)
-	} else if len(str) > 0 {
-		str = str[:len(str)-1]
+	if len(issue.Tags) > maxTags {
+		pretties = append(pretties, fmt.Sprintf("`[+%d]`", len(issue.Tags)-maxTags))
 	}
-	return str
+	return strings.Join(pretties, " ")
 }
 
 // Requires PriorityRole and CategoryRole to be set
