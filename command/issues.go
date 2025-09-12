@@ -109,8 +109,6 @@ var Issue = slash.Command{
 						Description:  "the tag to toggle",
 						Required:     true,
 						Autocomplete: false,
-						MinLength:    new(int),
-						MaxLength:    0,
 					},
 					&codeOpt,
 				},
@@ -121,13 +119,10 @@ var Issue = slash.Command{
 				Description: "replaces tags with the list of tags provided",
 				Options: []*dg.ApplicationCommandOption{
 					{
-						Type:         dg.ApplicationCommandOptionString,
-						Name:         "tags",
-						Description:  "the comma separated tags to replace",
-						Required:     true,
-						Autocomplete: false,
-						MinLength:    new(int),
-						MaxLength:    0,
+						Type:        dg.ApplicationCommandOptionString,
+						Name:        "tags",
+						Description: "the comma separated tags to replace. Input a single , to delete all tags",
+						Required:    true,
 					},
 					&codeOpt,
 				},
@@ -420,18 +415,30 @@ func IssueTag(s *dg.Session, i *dg.Interaction, issue *db.Issue, name string) er
 }
 
 func IssueTags(s *dg.Session, i *dg.Interaction, issue *db.Issue, tagsRaw string) error {
-	// TODO:
-	// tags := db.ParseTags(tagsRaw)
-	// // remove duplicate tags
-	// slices.Sort(tags)
-	// tags = slices.Compact(tags)
-	//
-	// issue.Tags = strings.Join(tags, ",")
-	// _, err := db.Issues.Where("id = ?", issue.ID).Update(db.Ctx, "tags", issue.Tags)
-	// if err != nil {
-	// 	return err
-	// }
-	//
-	msg := fmt.Sprintf("<@%s> replaced tags with %s", i.Member.User.ID, issue.PrettyTags(999, 999))
+	// parse and remove duplicates
+	tagNames := db.ParseTags(tagsRaw)
+	slices.Sort(tagNames)
+	tagNames = slices.Compact(tagNames)
+
+	tags := []db.Tag{}
+	for _, tagName := range tagNames {
+		tags = append(tags, db.Tag{Name: tagName, ProjectID: issue.ProjectID})
+	}
+
+	err := db.Conn.
+		Model(issue).
+		Association("Tags").
+		Replace(&tags)
+	if err != nil {
+		return err
+	}
+
+	prettyTags := ""
+	if len(tags) == 0 {
+		prettyTags = "[no tags]"
+	} else {
+		prettyTags = issue.PrettyTags(999, 999)
+	}
+	msg := fmt.Sprintf("<@%s> replaced tags with %s", i.Member.User.ID, prettyTags)
 	return slash.ReplyWithText(s, i, msg, false)
 }

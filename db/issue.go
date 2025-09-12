@@ -59,17 +59,6 @@ type Issue struct {
 	MessageID string
 }
 
-// func ParseTags(raw string) []string {
-// 	tags := []string{}
-// 	for rawTag := range strings.SplitSeq(raw, ",") {
-// 		trim := strings.Trim(rawTag, " +")
-// 		if len(trim) > 0 {
-// 			tags = append(tags, trim)
-// 		}
-// 	}
-// 	return tags
-// }
-
 // func (issue *Issue) ParseTags() []string {
 // 	return ParseTags(issue.Tags)
 // }
