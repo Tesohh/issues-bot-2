@@ -387,40 +387,31 @@ func IssueTag(s *dg.Session, i *dg.Interaction, issue *db.Issue, name string) er
 
 	msgFmt := ""
 	if index == -1 { // doesn't exist, create it
-		// find or create the tag
-		// TODO: MOVE THIS TO A FUNC?
-		dbTag := db.Tag{
+		tag := db.Tag{
 			Name:      name,
-			ProjectID: int(issue.ProjectID),
+			ProjectID: issue.ProjectID,
 		}
-		err := db.Conn.FirstOrCreate(&dbTag).Error
+
+		err := db.Conn.FirstOrCreate(&tag).Error
 		if err != nil {
 			return err
 		}
 
-		issue.Tags = append(issue.Tags, dbTag)
-
-		err = db.Conn.Table("issue_tags").
-			Create(map[string]any{
-				"issue_id":       issue.ID,
-				"tag_name":       dbTag.Name,
-				"tag_project_id": dbTag.ProjectID,
-			}).Error
+		err = db.Conn.Model(issue).Association("Tags").Append(&tag)
 		if err != nil {
 			return err
 		}
 
 		msgFmt = "<@%s> added tag `+%s`"
 	} else {
-		issue.Tags = slices.Delete(issue.Tags, index, index+1)
-		err := db.Conn.Table("issue_tags").
-			Where("issue_id = ?", issue.ID).
-			Where("tag_name = ?", name).
-			Where("tag_project_id = ?", issue.ProjectID).
-			Delete(map[string]any{}).Error
+		err := db.Conn.
+			Model(issue).
+			Association("Tags").
+			Delete(&db.Tag{Name: name, ProjectID: issue.ProjectID})
 		if err != nil {
 			return err
 		}
+
 		msgFmt = "<@%s> removed tag `+%s`"
 	}
 

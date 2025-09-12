@@ -8,7 +8,7 @@ import (
 
 type Tag struct {
 	Name      string `gorm:"primaryKey"`
-	ProjectID int    `gorm:"primaryKey"`
+	ProjectID uint   `gorm:"primaryKey"`
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
