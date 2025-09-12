@@ -7,6 +7,8 @@ import (
 	"issues/v2/logic"
 	"issues/v2/slash"
 	"log/slog"
+	"slices"
+	"strings"
 
 	dg "github.com/bwmarrin/discordgo"
 	"gorm.io/gorm"
@@ -76,7 +78,17 @@ var New = slash.Command{
 		title := opts["title"].StringValue()
 		tagNames := []string{}
 		if tagsOpt, ok := opts["tags"]; ok {
-			tagNames = db.ParseTags(tagsOpt.StringValue())
+			tagNames = strings.Split(tagsOpt.StringValue(), ",")
+
+			for i := range tagNames {
+				tagNames[i] = strings.Trim(tagNames[i], " +")
+				tagNames[i] = strings.ToLower(tagNames[i])
+			}
+
+			// remove duplicate tags
+			slices.Sort(tagNames)
+			tagNames = slices.Compact(tagNames)
+
 		}
 
 		tags := []db.Tag{}

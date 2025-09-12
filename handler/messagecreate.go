@@ -120,16 +120,22 @@ func messageCreate(s *dg.Session, m *dg.MessageCreate) error {
 		}
 	}
 
-	// remove duplicate tags
+	// remove duplicate tags and normalize
+	for i := range captures.Tags {
+		captures.Tags[i] = strings.ToLower(captures.Tags[i])
+	}
 	slices.Sort(captures.Tags)
 	captures.Tags = slices.Compact(captures.Tags)
-	tags := strings.Join(captures.Tags, ",")
-	_ = tags // DELETEME:
+
+	tags := []db.Tag{}
+	for _, tagName := range captures.Tags {
+		tags = append(tags, db.Tag{Name: tagName, ProjectID: project.ID})
+	}
 
 	// define the issue
 	issue := db.Issue{
-		Title: title,
-		// Tags:            tags,
+		Title:           title,
+		Tags:            tags,
 		Status:          db.IssueStatusTodo,
 		ProjectID:       project.ID,
 		Project:         project,

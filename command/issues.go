@@ -376,6 +376,8 @@ func IssueMark(s *dg.Session, i *dg.Interaction, issue *db.Issue, subcommand str
 
 func IssueTag(s *dg.Session, i *dg.Interaction, issue *db.Issue, name string) error {
 	name = strings.Trim(name, "+ ")
+	name = strings.ToLower(name)
+
 	index := slices.IndexFunc(issue.Tags, func(ltag db.Tag) bool {
 		return ltag.Name == name
 	})
@@ -412,6 +414,9 @@ func IssueTag(s *dg.Session, i *dg.Interaction, issue *db.Issue, name string) er
 func IssueTags(s *dg.Session, i *dg.Interaction, issue *db.Issue, tagsRaw string) error {
 	// parse and remove duplicates
 	tagNames := db.ParseTags(tagsRaw)
+	for i := range tagNames {
+		tagNames[i] = strings.ToLower(tagNames[i])
+	}
 	slices.Sort(tagNames)
 	tagNames = slices.Compact(tagNames)
 
