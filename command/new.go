@@ -7,8 +7,6 @@ import (
 	"issues/v2/logic"
 	"issues/v2/slash"
 	"log/slog"
-	"slices"
-	"strings"
 
 	dg "github.com/bwmarrin/discordgo"
 	"gorm.io/gorm"
@@ -76,20 +74,15 @@ var New = slash.Command{
 		}
 
 		title := opts["title"].StringValue()
-		tags := ""
+		tagNames := []string{}
 		if tagsOpt, ok := opts["tags"]; ok {
-			tagsSplit := strings.Split(tagsOpt.StringValue(), ",")
-
-			// remove duplicate tags
-			slices.Sort(tagsSplit)
-			tagsSplit = slices.Compact(tagsSplit)
-
-			for i := range tagsSplit {
-				tagsSplit[i] = strings.Trim(tagsSplit[i], " +")
-			}
-			tags = strings.Join(tagsSplit, ",")
+			tagNames = db.ParseTags(tagsOpt.StringValue())
 		}
-		_ = tags // DELETEME:
+
+		tags := []db.Tag{}
+		for _, tagName := range tagNames {
+			tags = append(tags, db.Tag{Name: tagName, ProjectID: project.ID})
+		}
 
 		kind := db.IssueKindNormal
 		if discussionOpt, ok := opts["discussion"]; ok {
@@ -136,8 +129,8 @@ var New = slash.Command{
 		}
 
 		issue := &db.Issue{
-			Title: title,
-			// Tags:            tags, // TODO:
+			Title:           title,
+			Tags:            tags,
 			Kind:            kind,
 			ProjectID:       project.ID,
 			RecruiterUserID: i.Member.User.ID,

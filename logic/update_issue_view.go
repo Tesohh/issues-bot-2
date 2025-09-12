@@ -22,6 +22,7 @@ func UpdateInteractiveIssuesView(s *dg.Session, messageID string, page0 bool) er
 
 	state, err := db.ProjectViewStates.
 		Preload("Project.Issues", nil).
+		Preload("Project.Issues.Tags", nil).
 		Preload("Project.Issues.PriorityRole", nil).
 		Preload("Project.Issues.CategoryRole", nil).
 		Where("message_id = ?", messageID).
@@ -44,7 +45,9 @@ func UpdateInteractiveIssuesView(s *dg.Session, messageID string, page0 bool) er
 // does not change the page, as someone updating an issue would change the page and would be annoying
 // also purges old lists
 func UpdateAllInteractiveIssuesViews(s *dg.Session, projectID uint) error {
-	project, err := db.Projects.Preload("Issues", nil).
+	project, err := db.Projects.
+		Preload("Issues", nil).
+		Preload("Issues.Tags", nil).
 		Preload("Issues.PriorityRole", nil).
 		Preload("Issues.CategoryRole", nil).
 		Where("id = ?", projectID).

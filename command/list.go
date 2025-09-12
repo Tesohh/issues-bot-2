@@ -51,6 +51,7 @@ var List = slash.Command{
 
 			query := db.Projects.
 				Preload("Issues", nil).
+				Preload("Issues.Tags", nil).
 				Preload("Issues.PriorityRole", nil).
 				Preload("Issues.CategoryRole", nil)
 

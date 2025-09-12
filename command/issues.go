@@ -387,12 +387,7 @@ func IssueTag(s *dg.Session, i *dg.Interaction, issue *db.Issue, name string) er
 			ProjectID: issue.ProjectID,
 		}
 
-		err := db.Conn.FirstOrCreate(&tag).Error
-		if err != nil {
-			return err
-		}
-
-		err = db.Conn.Model(issue).Association("Tags").Append(&tag)
+		err := db.Conn.Model(issue).Association("Tags").Append(&tag)
 		if err != nil {
 			return err
 		}
