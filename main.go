@@ -51,6 +51,7 @@ func main() {
 	session.AddHandler(handler.MessageCreate)
 	session.AddHandler(handler.Router)
 
+	slog.Info("registering commands...")
 	err = handler.RegisterCommands(session)
 	if err != nil {
 		slog.Error(err.Error())
