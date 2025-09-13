@@ -21,6 +21,7 @@ func Autocomplete(s *dg.Session, i *dg.InteractionCreate) {
 			if len(subcommand.Options) > 0 {
 				value = subcommand.Options[0].StringValue()
 			}
+			_ = value
 
 			channel, err := s.Channel(i.ChannelID)
 			if err != nil {
