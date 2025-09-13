@@ -108,7 +108,7 @@ var Issue = slash.Command{
 						Name:         "tag",
 						Description:  "the tag to toggle",
 						Required:     true,
-						Autocomplete: false,
+						Autocomplete: true,
 					},
 					&codeOpt,
 				},
