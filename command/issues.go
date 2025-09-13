@@ -104,11 +104,10 @@ var Issue = slash.Command{
 				Description: "toggles a tag on the issue",
 				Options: []*dg.ApplicationCommandOption{
 					{
-						Type:         dg.ApplicationCommandOptionString,
-						Name:         "tag",
-						Description:  "the tag to toggle",
-						Required:     true,
-						Autocomplete: true,
+						Type:        dg.ApplicationCommandOptionString,
+						Name:        "tag",
+						Description: "the tag to toggle",
+						Required:    true,
 					},
 					&codeOpt,
 				},
