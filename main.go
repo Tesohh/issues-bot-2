@@ -51,12 +51,14 @@ func main() {
 	session.AddHandler(handler.MessageCreate)
 	session.AddHandler(handler.Router)
 
-	slog.Info("registering commands...")
-	err = handler.RegisterCommands(session)
-	if err != nil {
-		slog.Error(err.Error())
-		return
-	}
+	go func() {
+		slog.Info("registering commands...")
+		err = handler.RegisterCommands(session)
+		if err != nil {
+			slog.Error(err.Error())
+			return
+		}
+	}()
 
 	defer session.Close()
 
@@ -65,7 +67,7 @@ func main() {
 	log.Println("Press Ctrl+C to exit")
 	<-stop
 
-	if os.Getenv("DISCORD_ENVIRONMENT") == "dev" {
+	if os.Getenv("DISCORD_ENVIRONMENT") == "dev++" {
 		log.Println("Removing commands...")
 		for id, cmds := range handler.RegisteredCommands {
 			for _, cmd := range cmds {

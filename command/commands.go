@@ -10,6 +10,7 @@ var Commands = map[string]*slash.Command{
 	"new":     &New,
 	"list":    &List,
 	"reset":   &Reset,
+	"man":     &Man,
 }
 
 func init() {

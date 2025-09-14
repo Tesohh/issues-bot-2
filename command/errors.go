@@ -11,4 +11,5 @@ var (
 	ErrPrefixNotSpecified     = errors.New("project not found, as command wasn't executed in a project context and `prefix` was not provided")
 	ErrNotInIssueThread       = errors.New("issue not found, as command wasn't executed in an issue's thread and `code` was not specified")
 	ErrWrongRole              = errors.New("role is invalid")
+	ErrManPageDoesNotExist    = errors.New("man page does not exist")
 )

@@ -2,7 +2,9 @@ package handler
 
 import (
 	"issues/v2/db"
+	"issues/v2/man"
 	"log/slog"
+	"strings"
 
 	dg "github.com/bwmarrin/discordgo"
 )
@@ -48,6 +50,16 @@ func Autocomplete(s *dg.Session, i *dg.InteractionCreate) {
 			_ = tags
 
 			// TODO: get the issue, check it's tags and then do completion
+		}
+	case "man":
+		search := command.Options[0].StringValue()
+		for _, page := range man.Pages {
+			if strings.Contains(strings.ToLower(page.Title), strings.ToLower(search)) {
+				choices = append(choices, &dg.ApplicationCommandOptionChoice{
+					Name:  page.Title,
+					Value: page.ID,
+				})
+			}
 		}
 	}
 
