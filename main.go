@@ -26,7 +26,10 @@ func initLogger() {
 
 func main() {
 	initLogger()
-	db.Connect(".data/issues2.db")
+	_, err := db.Connect(".data/issues2.db")
+	if err != nil {
+		panic(err)
+	}
 
 	session, err := discordgo.New(fmt.Sprintf("Bot %s", os.Getenv("DISCORD_BOT_TOKEN")))
 	if err != nil {
