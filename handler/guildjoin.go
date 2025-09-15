@@ -35,7 +35,7 @@ func registerGuild(event *discordgo.GuildCreate) (db.Guild, bool, error) {
 	guild := db.Guild{
 		ID: event.Guild.ID,
 	}
-	result := db.Conn.FirstOrCreate(&guild, guild)
+	result := db.Conn.FirstOrCreate(&guild)
 	err := result.Error
 	if err != nil {
 		return db.Guild{}, false, err
