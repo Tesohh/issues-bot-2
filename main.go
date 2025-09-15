@@ -36,6 +36,7 @@ func main() {
 
 	session.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		slog.Info(fmt.Sprintf("Logged in as: %v#%v", s.State.User.Username, s.State.User.Discriminator))
+		session.UpdateGameStatus(0, "Dips Mobile 2")
 	})
 
 	err = session.Open()
