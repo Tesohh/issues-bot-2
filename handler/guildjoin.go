@@ -4,6 +4,7 @@ import (
 	"issues/v2/data"
 	"issues/v2/db"
 	"log/slog"
+	"fmt"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -32,6 +33,8 @@ func GuildJoinHandler(s *discordgo.Session, event *discordgo.GuildCreate) {
 }
 
 func registerGuild(event *discordgo.GuildCreate) (db.Guild, bool, error) {
+	fmt.Println("THE CONN is CRAZY")
+	fmt.Println(db.Conn)
 	guild := db.Guild{
 		ID: event.Guild.ID,
 	}

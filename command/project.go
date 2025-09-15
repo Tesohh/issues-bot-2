@@ -168,8 +168,8 @@ func ProjectNew(s *dg.Session, i *dg.Interaction, prefix string, name string, re
 		return err
 	}
 
-	for i := range project.Issues {
-		project.Issues[i].Project.GuildID = project.GuildID
+	for index := range project.Issues {
+		project.Issues[index].Project.GuildID = project.GuildID
 	}
 
 	state := db.ProjectViewState{
@@ -190,7 +190,8 @@ func ProjectNew(s *dg.Session, i *dg.Interaction, prefix string, name string, re
 		Title:       fmt.Sprintf("Created project %s [`%s`]", name, strings.ToUpper(prefix)),
 		Description: fmt.Sprintf("Check out <#%s>", inputChannel.ID),
 	}
-	return slash.ReplyWithEmbed(s, i, embed, false)
+	slash.ReplyWithEmbed(s, i, embed, false)
+	return nil
 }
 
 func ProjectRename(s *dg.Session, i *dg.Interaction, prefix string, name string) error {
