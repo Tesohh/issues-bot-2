@@ -6,6 +6,8 @@ import (
 	"issues/v2/helper"
 	"strings"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type IssueStatus int
@@ -62,6 +64,19 @@ type Issue struct {
 // func (issue *Issue) ParseTags() []string {
 // 	return ParseTags(issue.Tags)
 // }
+
+// Returns a usable query which has all the dependencies required for MakeIssueMainDetail
+func IssueQueryWithDependencies() gorm.ChainInterface[Issue] {
+	return Issues.
+		Preload("Tags", nil).
+		Preload("AssigneeUsers", nil).
+		Preload("PriorityRole", nil).
+		Preload("CategoryRole", nil).
+		Preload("Project", func(db gorm.PreloadBuilder) error {
+			db.Select("ID", "Prefix")
+			return nil
+		})
+}
 
 // Requires issue.Project.Prefix to be set, or else the prefix will be ???
 func (issue *Issue) HumanCode() string {

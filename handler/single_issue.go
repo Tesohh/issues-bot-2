@@ -6,21 +6,10 @@ import (
 	"issues/v2/logic"
 
 	dg "github.com/bwmarrin/discordgo"
-	"gorm.io/gorm"
 )
 
 func issueSetStatus(s *dg.Session, i *dg.InteractionCreate, args []string) error {
-	issue, err := db.Issues.
-		Preload("Tags", nil).
-		Preload("AssigneeUsers", nil).
-		Preload("PriorityRole", nil).
-		Preload("CategoryRole", nil).
-		Preload("Project", func(db gorm.PreloadBuilder) error {
-			db.Select("ID", "Prefix")
-			return nil
-		}).
-		Where("id = ?", args[1]).
-		First(db.Ctx)
+	issue, err := db.IssueQueryWithDependencies().Where("id = ?", args[1]).First(db.Ctx)
 	if err != nil {
 		return err
 	}
@@ -49,7 +38,6 @@ func issueSetStatus(s *dg.Session, i *dg.InteractionCreate, args []string) error
 	if err != nil {
 		return err
 	}
-
 	err = logic.UpdateAllInteractiveIssuesViews(s, issue.ProjectID)
 	if err != nil {
 		return err
@@ -59,5 +47,28 @@ func issueSetStatus(s *dg.Session, i *dg.InteractionCreate, args []string) error
 }
 
 func issueToggleAuthorAssignee(s *dg.Session, i *dg.InteractionCreate, args []string) error {
+	issue, err := db.IssueQueryWithDependencies().Where("id = ?", args[1]).First(db.Ctx)
+	if err != nil {
+		return err
+	}
+
+	err = command.IssueAssign(s, i.Interaction, &issue, &dg.User{ID: i.Member.User.ID})
+	if err != nil {
+		return err
+	}
+
+	guild, err := db.Guilds.Select("nobody_role_id").Where("id = ?", i.GuildID).First(db.Ctx)
+	if err != nil {
+		return err
+	}
+	err = logic.UpdateIssueThreadDetail(s, &issue, guild.NobodyRoleID)
+	if err != nil {
+		return err
+	}
+	err = logic.UpdateAllInteractiveIssuesViews(s, issue.ProjectID)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
