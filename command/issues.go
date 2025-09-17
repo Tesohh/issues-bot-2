@@ -92,10 +92,10 @@ var Issue = slash.Command{
 				Name:        "mark",
 				Description: "marks the issue as ...",
 				Options: []*dg.ApplicationCommandOption{
-					{Type: dg.ApplicationCommandOptionSubCommand, Name: "todo", Description: "🟩 todo"},
-					{Type: dg.ApplicationCommandOptionSubCommand, Name: "doing", Description: "🟦 doing"},
-					{Type: dg.ApplicationCommandOptionSubCommand, Name: "done", Description: "🟪 done"},
-					{Type: dg.ApplicationCommandOptionSubCommand, Name: "cancelled", Description: "🟥 cancelled"},
+					{Type: dg.ApplicationCommandOptionSubCommand, Name: "todo", Description: "🟩 todo", Options: []*dg.ApplicationCommandOption{&codeOpt}},
+					{Type: dg.ApplicationCommandOptionSubCommand, Name: "doing", Description: "🟦 doing", Options: []*dg.ApplicationCommandOption{&codeOpt}},
+					{Type: dg.ApplicationCommandOptionSubCommand, Name: "done", Description: "🟪 done", Options: []*dg.ApplicationCommandOption{&codeOpt}},
+					{Type: dg.ApplicationCommandOptionSubCommand, Name: "cancelled", Description: "🟥 cancelled", Options: []*dg.ApplicationCommandOption{&codeOpt}},
 				},
 			},
 			{
@@ -140,13 +140,20 @@ var Issue = slash.Command{
 				return nil
 			})
 
-		if codeOpt, ok := options["code"]; ok {
+		var codeOpt *dg.ApplicationCommandInteractionDataOption
+
+		if opt, ok := options["code"]; ok {
+			codeOpt = opt
+		} else if opt := subcommand.Options[0].GetOption("code"); opt != nil {
+			codeOpt = opt
+		}
+
+		if codeOpt != nil {
 			code := codeOpt.IntValue()
 			channel, err := s.Channel(i.ChannelID)
 			if err != nil {
 				return err
 			}
-
 			project, err := db.Projects.
 				Select("id").
 				Where("discord_category_channel_id = ?", channel.ParentID).
@@ -162,6 +169,7 @@ var Issue = slash.Command{
 		} else {
 			query = query.Where("thread_id = ?", i.ChannelID)
 		}
+
 		issue, err := query.First(db.Ctx)
 		if err == gorm.ErrRecordNotFound {
 			return ErrNotInIssueThread
