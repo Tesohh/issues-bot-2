@@ -12,8 +12,10 @@ type Page struct {
 	Content []dg.MessageComponent
 }
 
-var Pages = map[string]*Page{
-	"shorthand": &Shorthand,
+type PageMaker func(*dg.Session, *dg.Interaction) (Page, error)
+
+var Pages = map[string]PageMaker{
+	"shorthand": Shorthand,
 }
 
 func dePijpToBackticks(s string) string {

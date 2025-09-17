@@ -24,9 +24,14 @@ var Man = slash.Command{
 	Func: func(s *dg.Session, i *dg.Interaction) error {
 		options := slash.GetOptionMap(i)
 		id := options["page"].StringValue()
-		page, ok := man.Pages[id]
+		maker, ok := man.Pages[id]
 		if !ok {
 			return ErrManPageDoesNotExist
+		}
+
+		page, err := maker(s, i)
+		if err != nil {
+			return err
 		}
 
 		components := []dg.MessageComponent{
