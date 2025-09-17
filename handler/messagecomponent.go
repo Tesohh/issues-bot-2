@@ -27,6 +27,9 @@ var messageComponentHandlers = map[string]messageComponentHandler{
 	"issues-order":         {2, true, issuesOrder},
 	"issues-filter-people": {1, true, issuesFilterPeople},
 	"issues-filter-data":   {1, true, issuesFilterData},
+
+	"issue-set-status":             {2, false, issueSetStatus},
+	"issue-toggle-author-assignee": {1, true, issueToggleAuthorAssignee},
 }
 
 // component custom ids need to be in this format: action:arg0:arg1
