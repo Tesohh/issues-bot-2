@@ -141,6 +141,7 @@ var Issue = slash.Command{
 			})
 
 		var codeOpt *dg.ApplicationCommandInteractionDataOption
+		var remote bool
 
 		if opt, ok := options["code"]; ok {
 			codeOpt = opt
@@ -149,6 +150,7 @@ var Issue = slash.Command{
 		}
 
 		if codeOpt != nil {
+			remote = true
 			code := codeOpt.IntValue()
 			channel, err := s.Channel(i.ChannelID)
 			if err != nil {
@@ -170,6 +172,8 @@ var Issue = slash.Command{
 			query = query.Where("thread_id = ?", i.ChannelID)
 		}
 
+		_ = remote
+
 		issue, err := query.First(db.Ctx)
 		if err == gorm.ErrRecordNotFound {
 			return ErrNotInIssueThread
@@ -178,7 +182,7 @@ var Issue = slash.Command{
 		switch subcommand.Name {
 		case "assign":
 			assignee := options["assignee"].UserValue(nil)
-			err = IssueAssign(s, i, &issue, assignee)
+			err = IssueAssign(s, i, &issue, assignee, remote)
 		case "category", "priority":
 			key := options["role"].StringValue()
 			role, err := db.Roles.
@@ -189,19 +193,19 @@ var Issue = slash.Command{
 			if err != nil {
 				return err
 			}
-			err = IssueCategoryOrPriority(s, i, &issue, &role, subcommand.Name)
+			err = IssueCategoryOrPriority(s, i, &issue, &role, subcommand.Name, remote)
 		case "rename":
 			title := options["title"].StringValue()
-			err = IssueRename(s, i, &issue, title)
+			err = IssueRename(s, i, &issue, title, remote)
 		case "mark":
 			arg := subcommand.Options[0].Name
-			err = IssueMark(s, i, &issue, arg)
+			err = IssueMark(s, i, &issue, arg, remote)
 		case "tag":
 			tag := options["tag"].StringValue()
-			err = IssueTag(s, i, &issue, tag)
+			err = IssueTag(s, i, &issue, tag, remote)
 		case "tags":
 			tags := options["tags"].StringValue()
-			err = IssueTags(s, i, &issue, tags)
+			err = IssueTags(s, i, &issue, tags, remote)
 		}
 
 		if err != nil {
@@ -222,11 +226,20 @@ var Issue = slash.Command{
 			return err
 		}
 
+		if remote {
+			return slash.ReplyWithText(s, i,
+				fmt.Sprintf("Executed remote `%s` operation on <#%s>",
+					subcommand.Name,
+					issue.ThreadID,
+				),
+				true)
+		}
+
 		return nil
 	},
 }
 
-func IssueAssign(s *dg.Session, i *dg.Interaction, issue *db.Issue, assignee *dg.User) error {
+func IssueAssign(s *dg.Session, i *dg.Interaction, issue *db.Issue, assignee *dg.User, remote bool) error {
 	index := slices.IndexFunc(issue.AssigneeUsers, func(user db.User) bool {
 		return user.ID == assignee.ID
 	})
@@ -257,10 +270,15 @@ func IssueAssign(s *dg.Session, i *dg.Interaction, issue *db.Issue, assignee *dg
 	}
 
 	msg := fmt.Sprintf(msgFmt, i.Member.User.ID, assignee.ID)
-	return slash.ReplyWithText(s, i, msg, false)
+	if remote {
+		_, err := s.ChannelMessageSend(issue.ThreadID, msg)
+		return err
+	} else {
+		return slash.ReplyWithText(s, i, msg, false)
+	}
 }
 
-func IssueCategoryOrPriority(s *dg.Session, i *dg.Interaction, issue *db.Issue, role *db.Role, subcommand string) error {
+func IssueCategoryOrPriority(s *dg.Session, i *dg.Interaction, issue *db.Issue, role *db.Role, subcommand string, remote bool) error {
 	switch subcommand {
 	case "priority":
 		if role.Kind != db.RoleKindPriority {
@@ -291,10 +309,15 @@ func IssueCategoryOrPriority(s *dg.Session, i *dg.Interaction, issue *db.Issue, 
 	}
 
 	msg := fmt.Sprintf("<@%s> updated %s to <@&%s>", i.Member.User.ID, subcommand, role.ID)
-	return slash.ReplyWithText(s, i, msg, false)
+	if remote {
+		_, err := s.ChannelMessageSend(issue.ThreadID, msg)
+		return err
+	} else {
+		return slash.ReplyWithText(s, i, msg, false)
+	}
 }
 
-func IssueRename(s *dg.Session, i *dg.Interaction, issue *db.Issue, title string) error {
+func IssueRename(s *dg.Session, i *dg.Interaction, issue *db.Issue, title string, remote bool) error {
 	if issue.Title == title {
 		msg := "Title was already that, no actions taken."
 		return slash.ReplyWithText(s, i, msg, true)
@@ -312,12 +335,17 @@ func IssueRename(s *dg.Session, i *dg.Interaction, issue *db.Issue, title string
 	}
 
 	msg := fmt.Sprintf("<@%s> updated the title to \"%s\"", i.Member.User.ID, title)
-	return slash.ReplyWithText(s, i, msg, false)
+	if remote {
+		_, err := s.ChannelMessageSend(issue.ThreadID, msg)
+		return err
+	} else {
+		return slash.ReplyWithText(s, i, msg, false)
+	}
 }
 
 var marksPerIssue = map[uint]int{}
 
-func IssueMark(s *dg.Session, i *dg.Interaction, issue *db.Issue, subcommand string) error {
+func IssueMark(s *dg.Session, i *dg.Interaction, issue *db.Issue, subcommand string, remote bool) error {
 	var issueStatus db.IssueStatus
 	var archive = false
 	var lock = false
@@ -378,10 +406,15 @@ func IssueMark(s *dg.Session, i *dg.Interaction, issue *db.Issue, subcommand str
 	}
 
 	msg := fmt.Sprintf("<@%s> marked the issue as %s %s%s\n%s", i.Member.User.ID, db.IssueStatusIcons[issueStatus], db.IssueStatusNames[issueStatus], alsoWillArchiveString, warnString)
-	return slash.ReplyWithText(s, i, msg, false)
+	if remote {
+		_, err := s.ChannelMessageSend(issue.ThreadID, msg)
+		return err
+	} else {
+		return slash.ReplyWithText(s, i, msg, false)
+	}
 }
 
-func IssueTag(s *dg.Session, i *dg.Interaction, issue *db.Issue, name string) error {
+func IssueTag(s *dg.Session, i *dg.Interaction, issue *db.Issue, name string, remote bool) error {
 	name = strings.Trim(name, "+ ")
 	name = strings.ToLower(name)
 
@@ -415,10 +448,15 @@ func IssueTag(s *dg.Session, i *dg.Interaction, issue *db.Issue, name string) er
 	}
 
 	msg := fmt.Sprintf(msgFmt, i.Member.User.ID, name)
-	return slash.ReplyWithText(s, i, msg, false)
+	if remote {
+		_, err := s.ChannelMessageSend(issue.ThreadID, msg)
+		return err
+	} else {
+		return slash.ReplyWithText(s, i, msg, false)
+	}
 }
 
-func IssueTags(s *dg.Session, i *dg.Interaction, issue *db.Issue, tagsRaw string) error {
+func IssueTags(s *dg.Session, i *dg.Interaction, issue *db.Issue, tagsRaw string, remote bool) error {
 	// parse and remove duplicates
 	tagNames := db.ParseTags(tagsRaw)
 	for i := range tagNames {
@@ -447,5 +485,10 @@ func IssueTags(s *dg.Session, i *dg.Interaction, issue *db.Issue, tagsRaw string
 		prettyTags = issue.PrettyTags(999, 999)
 	}
 	msg := fmt.Sprintf("<@%s> replaced tags with %s", i.Member.User.ID, prettyTags)
-	return slash.ReplyWithText(s, i, msg, false)
+	if remote {
+		_, err := s.ChannelMessageSend(issue.ThreadID, msg)
+		return err
+	} else {
+		return slash.ReplyWithText(s, i, msg, false)
+	}
 }

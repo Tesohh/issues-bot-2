@@ -5,7 +5,6 @@ import (
 )
 
 func ReplyWithText(s *discordgo.Session, i *discordgo.Interaction, content string, ephemeral bool) error {
-
 	var flags discordgo.MessageFlags
 	if ephemeral {
 		flags = discordgo.MessageFlagsEphemeral
