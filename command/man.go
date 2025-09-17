@@ -24,12 +24,12 @@ var Man = slash.Command{
 	Func: func(s *dg.Session, i *dg.Interaction) error {
 		options := slash.GetOptionMap(i)
 		id := options["page"].StringValue()
-		maker, ok := man.Pages[id]
+		page, ok := man.Pages[id]
 		if !ok {
 			return ErrManPageDoesNotExist
 		}
 
-		page, err := maker(s, i)
+		content, err := page.Func(s, i)
 		if err != nil {
 			return err
 		}
@@ -37,7 +37,7 @@ var Man = slash.Command{
 		components := []dg.MessageComponent{
 			dg.TextDisplay{Content: "# " + page.Title},
 		}
-		components = append(components, page.Content...)
+		components = append(components, content...)
 
 		return slash.ReplyWithComponents(s, i, true, dg.Container{
 			Components: components,

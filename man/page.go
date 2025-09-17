@@ -7,14 +7,14 @@ import (
 )
 
 type Page struct {
-	ID      string
-	Title   string
-	Content []dg.MessageComponent
+	ID    string
+	Title string
+	Func  PageMaker
 }
 
-type PageMaker func(*dg.Session, *dg.Interaction) (Page, error)
+type PageMaker func(*dg.Session, *dg.Interaction) ([]dg.MessageComponent, error)
 
-var Pages = map[string]PageMaker{
+var Pages = map[string]Page{
 	"shorthand": Shorthand,
 }
 

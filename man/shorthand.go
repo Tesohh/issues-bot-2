@@ -2,11 +2,11 @@ package man
 
 import dg "github.com/bwmarrin/discordgo"
 
-func Shorthand(_ *dg.Session, _ *dg.Interaction) (Page, error) {
-	return Page{
-		ID:    "shorthand",
-		Title: "Shorthand Syntax",
-		Content: []dg.MessageComponent{
+var Shorthand = Page{
+	ID:    "shorthand",
+	Title: "Shorthand Syntax",
+	Func: func(s *dg.Session, i *dg.Interaction) ([]dg.MessageComponent, error) {
+		return []dg.MessageComponent{
 			text(`
 The shorthand syntax is the *most efficient way* to create new **Issues**, **Discussions (WIP)** and **Tasks (WIP)**.
 It is recommended to** always use this** instead of |/new| for a much *faster* and *frictionless* experience.
@@ -39,6 +39,6 @@ the |/new| equivalent would be: |/new title:add NUKE 3D raytraced graphics categ
 			media("https://i.ibb.co/W41bMLpL/tags.png"),
 			text(`Lastly, this is how you add tags; by prefixing them with a |+| sign.
 |/new| equivalent: |/new title:Write docker-compose script category:CHORE tags:devops|`),
-		},
-	}, nil
+		}, nil
+	},
 }
