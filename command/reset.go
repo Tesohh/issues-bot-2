@@ -3,6 +3,7 @@ package command
 import (
 	"issues/v2/db"
 	"issues/v2/slash"
+	"os"
 
 	dg "github.com/bwmarrin/discordgo"
 )
@@ -19,9 +20,9 @@ var Reset = slash.Command{
 				Required:    true,
 			},
 			{
-				Type:        dg.ApplicationCommandOptionBoolean,
-				Name:        "confirm2",
-				Description: "are you really REALLY sure?",
+				Type:        dg.ApplicationCommandOptionString,
+				Name:        "password",
+				Description: "password only known by tesohh",
 				Required:    true,
 			},
 		},
@@ -30,10 +31,16 @@ var Reset = slash.Command{
 
 		options := slash.GetOptionMap(i)
 		confirm := options["confirm"].BoolValue()
-		confirm2 := options["confirm2"].BoolValue()
-		if !confirm || !confirm2 {
+		password := options["password"].StringValue()
+		if !confirm {
 			return slash.ReplyWithEmbed(s, i, dg.MessageEmbed{
 				Title: "alright, no actions taken",
+			}, true)
+		}
+
+		if password != os.Getenv("DISCORD_RESET_PASSWORD") {
+			return slash.ReplyWithEmbed(s, i, dg.MessageEmbed{
+				Title: "wrong password. no actions taken",
 			}, true)
 		}
 
