@@ -1,6 +1,7 @@
 package command
 
 import (
+	"fmt"
 	"issues/v2/db"
 	"issues/v2/logic"
 	"issues/v2/slash"
@@ -33,6 +34,11 @@ var List = slash.Command{
 						Description: "if true, the message will be sent as a message and not a reply",
 					},
 				},
+			},
+			{
+				Type:        dg.ApplicationCommandOptionSubCommand,
+				Name:        "projects",
+				Description: "lists all projects in this guild",
 			},
 		},
 	},
@@ -116,6 +122,22 @@ var List = slash.Command{
 			}
 
 			return nil
+		case "projects":
+			projects, err := db.Projects.Where("guild_id = ?", i.GuildID).Find(db.Ctx)
+			if err != nil {
+				return err
+			}
+
+			str := ""
+			for _, project := range projects {
+				str += fmt.Sprintf("- `[%s]` %s <#%s>\n", strings.ToUpper(project.Prefix), project.Name, project.IssuesInputChannelID)
+			}
+
+			embed := dg.MessageEmbed{
+				Title:       "Projects in this guild",
+				Description: str,
+			}
+			return slash.ReplyWithEmbed(s, i, embed, false)
 		}
 
 		return nil
