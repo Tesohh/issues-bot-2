@@ -1,6 +1,7 @@
 package man
 
 import (
+	"fmt"
 	"strings"
 
 	dg "github.com/bwmarrin/discordgo"
@@ -15,15 +16,16 @@ type Page struct {
 type PageMaker func(*dg.Session, *dg.Interaction) ([]dg.MessageComponent, error)
 
 var Pages = map[string]Page{
-	"shorthand": Shorthand,
+	"shorthand":                 Shorthand,
+	"priorities-and-categories": PrioritiesAndCategories,
 }
 
 func dePijpToBackticks(s string) string {
 	return strings.ReplaceAll(s, "|", "`")
 }
 
-func text(s string) dg.TextDisplay {
-	return dg.TextDisplay{Content: dePijpToBackticks(s)}
+func text(s string, args ...any) dg.TextDisplay {
+	return dg.TextDisplay{Content: dePijpToBackticks(fmt.Sprintf(s, args...))}
 }
 
 func media(urls ...string) dg.MediaGallery {
