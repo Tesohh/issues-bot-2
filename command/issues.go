@@ -223,7 +223,8 @@ var Issue = slash.Command{
 			err = IssueTags(s, i, &issue, tags, remote)
 		case "dependson":
 			id := options["target"].StringValue()
-			target, err := db.Issues.Select("id, thread_id").Where("id = ?", id).First(db.Ctx)
+			var target db.Issue
+			target, err = db.Issues.Select("id, thread_id").Where("id = ?", id).First(db.Ctx)
 			if err != nil {
 				return err
 			}
@@ -522,6 +523,10 @@ func IssueTags(s *dg.Session, i *dg.Interaction, issue *db.Issue, tagsRaw string
 }
 
 func IssueDependsOn(s *dg.Session, i *dg.Interaction, issue *db.Issue, target *db.Issue, remote bool) error {
+	if issue.ID == target.ID {
+		return ErrCannotAddSelfAsDependency
+	}
+
 	relationship, err := db.Relationships.
 		Where("from_issue_id = ?", issue.ID).
 		Where("to_issue_id = ?", target.ID).
