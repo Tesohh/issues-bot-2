@@ -172,7 +172,7 @@ var New = slash.Command{
 		}
 
 		// TEMP: relationships
-		err = logic.InitIssueThread(issue, []db.Relationship{}, &guild, thread, s)
+		err = logic.InitIssueThread(issue, db.RelationshipsByDirection{}, &guild, thread, s)
 		if err != nil {
 			return err
 		}

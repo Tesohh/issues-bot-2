@@ -158,7 +158,7 @@ func messageCreate(s *dg.Session, m *dg.MessageCreate) error {
 	}
 
 	// TEMP: Relationships
-	err = logic.InitIssueThread(&issue, []db.Relationship{}, &guild, thread, s)
+	err = logic.InitIssueThread(&issue, db.RelationshipsByDirection{}, &guild, thread, s)
 	if err != nil {
 		return err
 	}

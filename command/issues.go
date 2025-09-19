@@ -141,6 +141,12 @@ var Issue = slash.Command{
 					&codeOpt,
 				},
 			},
+			{
+				Type:        dg.ApplicationCommandOptionSubCommand,
+				Name:        "refresh",
+				Description: "refreshes this issue's view",
+				Options:     []*dg.ApplicationCommandOption{&codeOpt},
+			},
 		},
 	},
 	Func: func(s *dg.Session, i *dg.Interaction) error {
@@ -160,8 +166,10 @@ var Issue = slash.Command{
 
 		if opt, ok := options["code"]; ok {
 			codeOpt = opt
-		} else if opt := subcommand.Options[0].GetOption("code"); opt != nil {
-			codeOpt = opt
+		} else if len(subcommand.Options) > 0 {
+			if opt := subcommand.Options[0].GetOption("code"); opt != nil {
+				codeOpt = opt
+			}
 		}
 
 		if codeOpt != nil {
@@ -229,6 +237,8 @@ var Issue = slash.Command{
 				return err
 			}
 			err = IssueDependsOn(s, i, &issue, &target, remote)
+		case "refresh":
+			err = nil
 		}
 
 		if err != nil {

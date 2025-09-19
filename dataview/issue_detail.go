@@ -55,21 +55,38 @@ func MakeIssueMainDetail(issue *db.Issue, nobodyRoleID string) dg.Container {
 }
 
 // relationships need to have ToIssue preloaded
-func MakeDependenciesContainer(issue *db.Issue, relationships []db.Relationship) (dg.Container, bool) {
+func MakeDependenciesContainer(issue *db.Issue, relationships db.RelationshipsByDirection) (dg.Container, bool) {
 	container := dg.Container{
 		AccentColor: slash.Ptr(slash.EmbedColor),
-		Components: []dg.MessageComponent{
-			dg.TextDisplay{Content: "### Dependencies"},
-		},
 	}
 
-	if len(relationships) == 0 {
+	if len(relationships.Inbound) == 0 && len(relationships.Outbound) == 0 {
 		return container, false
 	}
 
-	for _, relationship := range relationships {
+	if len(relationships.Inbound) > 0 {
+		container.Components = append(container.Components, dg.TextDisplay{Content: "### Dependants"})
+	}
+	for _, relationship := range relationships.Inbound {
 		if relationship.Kind == db.RelationshipKindDependency {
 
+			tags := relationship.ToIssue.PrettyTags(MaxTagsCount, MaxTagLength)
+			preview := fmt.Sprintf("- %s %s %s %s",
+				relationship.FromIssue.PrettyLink(len(fmt.Sprint(*relationship.FromIssue.Code))),
+				relationship.FromIssue.RoleEmojis(),
+				relationship.FromIssue.CutTitle(MaxTitleLength-len(tags)),
+				tags,
+			)
+
+			container.Components = append(container.Components, dg.TextDisplay{Content: preview})
+		}
+	}
+
+	if len(relationships.Outbound) > 0 {
+		container.Components = append(container.Components, dg.TextDisplay{Content: "### Dependencies"})
+	}
+	for _, relationship := range relationships.Outbound {
+		if relationship.Kind == db.RelationshipKindDependency {
 			tags := relationship.ToIssue.PrettyTags(MaxTagsCount, MaxTagLength)
 			preview := fmt.Sprintf("- %s %s %s %s",
 				relationship.ToIssue.PrettyLink(len(fmt.Sprint(*relationship.ToIssue.Code))),
@@ -139,22 +156,25 @@ func makeAssignMeButton(issue *db.Issue) dg.Button {
 	}
 }
 
-func MakeIssueThreadDetail(issue *db.Issue, relationships []db.Relationship, nobodyRoleID string) []dg.MessageComponent {
+func MakeIssueThreadDetail(issue *db.Issue, relationships db.RelationshipsByDirection, nobodyRoleID string) []dg.MessageComponent {
 	allComponents := []dg.MessageComponent{
 		MakeIssueMainDetail(issue, nobodyRoleID),
+		dg.ActionsRow{
+			Components: []dg.MessageComponent{
+				makeIssueNextStateButton(issue),
+				makeAssignMeButton(issue),
+			},
+		},
+		dg.Separator{
+			Divider: slash.Ptr(false),
+			Spacing: slash.Ptr(dg.SeparatorSpacingSizeLarge),
+		},
 	}
 
 	dependenciesContainer, ok := MakeDependenciesContainer(issue, relationships)
 	if ok {
 		allComponents = append(allComponents, dependenciesContainer)
 	}
-
-	allComponents = append(allComponents, dg.ActionsRow{
-		Components: []dg.MessageComponent{
-			makeIssueNextStateButton(issue),
-			makeAssignMeButton(issue),
-		},
-	})
 
 	return allComponents
 }

@@ -21,3 +21,9 @@ type Relationship struct {
 
 	Kind RelationshipKind `gorm:"check:kind in ('dependency')"`
 }
+
+// helper type used by some functions to group relationships by their direction
+type RelationshipsByDirection struct {
+	Inbound  []Relationship
+	Outbound []Relationship
+}
