@@ -588,11 +588,6 @@ func IssueDependsOn(s *dg.Session, i *dg.Interaction, issue *db.Issue, target *d
 	if err != nil {
 		return err
 	}
-
-	err = logic.UpdateAllInteractiveIssuesViews(s, target.ProjectID)
-	if err != nil {
-		return err
-	}
 	// Finish refreshing other issue
 
 	if remote {

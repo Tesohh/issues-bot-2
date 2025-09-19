@@ -57,6 +57,12 @@ var New = slash.Command{
 				Description: "set this to true to assign the issue to nobody",
 				Type:        dg.ApplicationCommandOptionBoolean,
 			},
+			{
+				Type:         dg.ApplicationCommandOptionString,
+				Name:         "dependson",
+				Description:  "an issue to set as a dependency (just one)",
+				Autocomplete: true,
+			},
 		},
 	},
 	Disabled: false,
@@ -171,7 +177,6 @@ var New = slash.Command{
 			return fmt.Errorf("error in thread creation: %w", err)
 		}
 
-		// TEMP: relationships
 		err = logic.InitIssueThread(issue, db.RelationshipsByDirection{}, &guild, thread, s)
 		if err != nil {
 			return err
@@ -180,6 +185,62 @@ var New = slash.Command{
 		err = db.Issues.Create(db.Ctx, issue)
 		if err != nil {
 			return err
+		}
+
+		if dependsOnOpt, ok := opts["dependson"]; ok {
+			// get the target
+			id := dependsOnOpt.StringValue()
+			var target db.Issue
+			target, err = db.Issues.
+				Preload("Tags", nil).
+				Preload("AssigneeUsers", nil).
+				Preload("Project", func(db gorm.PreloadBuilder) error {
+					db.Select("ID", "Prefix")
+					return nil
+				}).
+				Where("id = ?", id).
+				First(db.Ctx)
+			if err != nil {
+				return err
+			}
+
+			// add the relationship
+			relationship := db.Relationship{
+				FromIssueID: issue.ID,
+				ToIssueID:   target.ID,
+				Kind:        db.RelationshipKindDependency,
+			}
+			err := db.Relationships.Create(db.Ctx, &relationship)
+			if err != nil {
+				return err
+			}
+
+			relationship.FromIssue = *issue
+			relationship.ToIssue = target
+
+			// refresh my view
+			guild, err := db.Guilds.Select("nobody_role_id").Where("id = ?", i.GuildID).First(db.Ctx)
+			if err != nil {
+				return err
+			}
+
+			err = logic.UpdateIssueThreadDetail(s, issue, db.RelationshipsByDirection{
+				Outbound: []db.Relationship{relationship},
+			}, guild.NobodyRoleID)
+			if err != nil {
+				return err
+			}
+
+			// refresh target's view
+			relationships, err := logic.GetIssueRelationshipsOfKind(&target, db.RelationshipKindDependency)
+			if err != nil {
+				return err
+			}
+
+			err = logic.UpdateIssueThreadDetail(s, &target, relationships, guild.NobodyRoleID)
+			if err != nil {
+				return err
+			}
 		}
 
 		return logic.UpdateAllInteractiveIssuesViews(s, project.ID)
