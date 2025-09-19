@@ -73,7 +73,7 @@ func IssueQueryWithDependencies() gorm.ChainInterface[Issue] {
 		Preload("PriorityRole", nil).
 		Preload("CategoryRole", nil).
 		Preload("Project", func(db gorm.PreloadBuilder) error {
-			db.Select("ID", "Prefix")
+			db.Select("ID", "Prefix", "GuildID")
 			return nil
 		})
 }

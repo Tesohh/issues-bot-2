@@ -19,7 +19,7 @@ The principle is the same as |/new|: you need to be in the |#xxx-issues| channel
 - Start with a |- | like you would in a todo list
 - You can place components (category, priority, etc.) in any order, but the sequence above makes the most sense
   - Technically you can even put them in between your title, but of course that will lead to broken text.
-- Place dependencies (|depends on ...|) on a new line (note: dependencies are WIP)
+- Place dependencies (|depends on ...|) on a new line
 - Unlike |/new|, you can assign the issue to multiple people
 
 the |/new| equivalent would be: |/new title:add NUKE 3D raytraced graphics category:FEAT priority:CRITICAL assign:@tesohh dependson:#CVV-1 add nuke|`),
