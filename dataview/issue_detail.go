@@ -53,6 +53,42 @@ func MakeIssueMainDetail(issue *db.Issue, nobodyRoleID string) dg.Container {
 	return container
 }
 
+// relationships need to have ToIssue preloaded
+func MakeDependenciesContainer(issue *db.Issue, relationships []db.Relationship) (dg.Container, bool) {
+	container := dg.Container{
+		AccentColor: slash.Ptr(slash.EmbedColor),
+		Components: []dg.MessageComponent{
+			dg.TextDisplay{Content: "### Dependencies"},
+		},
+	}
+
+	if len(relationships) == 0 {
+		return container, false
+	}
+
+	for _, relationship := range relationships {
+		if relationship.Kind == db.RelationshipKindDependency {
+
+			tags := relationship.ToIssue.PrettyTags(MaxTagsCount, MaxTagLength)
+			preview := fmt.Sprintf("- %s %s %s %s",
+				relationship.ToIssue.PrettyLink(len(fmt.Sprint(*relationship.ToIssue.Code))),
+				relationship.ToIssue.RoleEmojis(),
+				relationship.ToIssue.CutTitle(MaxTitleLength-len(tags)),
+				tags,
+			)
+
+			container.Components = append(container.Components, dg.Section{
+				Components: []dg.MessageComponent{
+					dg.TextDisplay{Content: preview},
+				},
+				Accessory: dg.Button{CustomID: "select", Label: "Select", Style: dg.SecondaryButton}, // TODO:
+			})
+		}
+	}
+
+	return container, true
+}
+
 func makeIssueNextStateButton(issue *db.Issue) dg.Button {
 	label := ""
 	style := dg.SecondaryButton
@@ -102,16 +138,22 @@ func makeAssignMeButton(issue *db.Issue) dg.Button {
 	}
 }
 
-func MakeIssueThreadDetail(issue *db.Issue, nobodyRoleID string) []dg.MessageComponent {
+func MakeIssueThreadDetail(issue *db.Issue, relationships []db.Relationship, nobodyRoleID string) []dg.MessageComponent {
 	allComponents := []dg.MessageComponent{
 		MakeIssueMainDetail(issue, nobodyRoleID),
-		dg.ActionsRow{
-			Components: []dg.MessageComponent{
-				makeIssueNextStateButton(issue),
-				makeAssignMeButton(issue),
-			},
-		},
 	}
+
+	dependenciesContainer, ok := MakeDependenciesContainer(issue, relationships)
+	if ok {
+		allComponents = append(allComponents, dependenciesContainer)
+	}
+
+	allComponents = append(allComponents, dg.ActionsRow{
+		Components: []dg.MessageComponent{
+			makeIssueNextStateButton(issue),
+			makeAssignMeButton(issue),
+		},
+	})
 
 	return allComponents
 }

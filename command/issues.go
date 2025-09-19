@@ -238,7 +238,13 @@ var Issue = slash.Command{
 		if err != nil {
 			return err
 		}
-		err = logic.UpdateIssueThreadDetail(s, &issue, guild.NobodyRoleID)
+
+		relationships, err := logic.GetIssueRelationshipsOfKind(&issue, db.RelationshipKindDependency)
+		if err != nil {
+			return err
+		}
+
+		err = logic.UpdateIssueThreadDetail(s, &issue, relationships, guild.NobodyRoleID)
 		if err != nil {
 			return err
 		}

@@ -171,7 +171,8 @@ var New = slash.Command{
 			return fmt.Errorf("error in thread creation: %w", err)
 		}
 
-		err = logic.InitIssueThread(issue, &guild, thread, s)
+		// TEMP: relationships
+		err = logic.InitIssueThread(issue, []db.Relationship{}, &guild, thread, s)
 		if err != nil {
 			return err
 		}

@@ -34,10 +34,17 @@ func issueSetStatus(s *dg.Session, i *dg.InteractionCreate, args []string) error
 	if err != nil {
 		return err
 	}
-	err = logic.UpdateIssueThreadDetail(s, &issue, guild.NobodyRoleID)
+
+	relationships, err := logic.GetIssueRelationshipsOfKind(&issue, db.RelationshipKindDependency)
 	if err != nil {
 		return err
 	}
+
+	err = logic.UpdateIssueThreadDetail(s, &issue, relationships, guild.NobodyRoleID)
+	if err != nil {
+		return err
+	}
+
 	err = logic.UpdateAllInteractiveIssuesViews(s, issue.ProjectID)
 	if err != nil {
 		return err
@@ -61,10 +68,17 @@ func issueToggleAuthorAssignee(s *dg.Session, i *dg.InteractionCreate, args []st
 	if err != nil {
 		return err
 	}
-	err = logic.UpdateIssueThreadDetail(s, &issue, guild.NobodyRoleID)
+
+	relationships, err := logic.GetIssueRelationshipsOfKind(&issue, db.RelationshipKindDependency)
 	if err != nil {
 		return err
 	}
+
+	err = logic.UpdateIssueThreadDetail(s, &issue, relationships, guild.NobodyRoleID)
+	if err != nil {
+		return err
+	}
+
 	err = logic.UpdateAllInteractiveIssuesViews(s, issue.ProjectID)
 	if err != nil {
 		return err
