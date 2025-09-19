@@ -21,35 +21,22 @@ func Autocomplete(s *dg.Session, i *dg.InteractionCreate) {
 		subcommand := command.Options[0]
 		switch subcommand.Name {
 		case "dependson":
-			start := time.Now()
-			ch, err := s.Channel(i.ChannelID)
-			if err != nil {
-				slog.Error("error while fetching channel during issue completions", "err", err)
-				return
-			}
-			fmt.Printf("(channel) time elapsed ms: %d\n", time.Since(start).Milliseconds())
-
-			parent, err := s.Channel(ch.ParentID)
+			parentID, err := getChannelParentID(s, i.ChannelID)
 			if err != nil {
 				slog.Error("error while fetching parent channel during issue completions", "err", err)
 				return
 			}
-			fmt.Printf("(parent) time elapsed ms: %d\n", time.Since(start).Milliseconds())
-			theFamily := []string{parent.ID}
+			theFamily := []string{parentID}
 
-			grandParent, err := s.Channel(parent.ParentID)
+			grandParentID, err := getChannelParentID(s, parentID)
 			if err == nil {
-				theFamily = append(theFamily, grandParent.ID)
-				return
+				theFamily = append(theFamily, grandParentID)
 			}
-			fmt.Printf("(grandparent) time elapsed ms: %d\n", time.Since(start).Milliseconds())
 
 			project, err := db.Projects.
 				Select("id, prefix").
 				Where("discord_category_channel_id IN ?", theFamily).
 				First(db.Ctx)
-
-			fmt.Printf("(project) time elapsed ms: %d\n", time.Since(start).Milliseconds())
 
 			search := subcommand.Options[0].StringValue()
 			issues, err := db.Issues.
@@ -62,7 +49,6 @@ func Autocomplete(s *dg.Session, i *dg.InteractionCreate) {
 				slog.Error("error while fetching issue completions", "err", err)
 				return
 			}
-			fmt.Printf("(issues) time elapsed ms: %d\n", time.Since(start).Milliseconds())
 
 			for i := range issues {
 				issues[i].Project = project
@@ -72,8 +58,6 @@ func Autocomplete(s *dg.Session, i *dg.InteractionCreate) {
 					Value: fmt.Sprint(issues[i].ID),
 				})
 			}
-
-			fmt.Printf("(done) time elapsed ms: %d\n", time.Since(start).Milliseconds())
 		}
 	case "man":
 		search := command.Options[0].StringValue()
@@ -99,4 +83,32 @@ func Autocomplete(s *dg.Session, i *dg.InteractionCreate) {
 	}
 }
 
-// func issueAutocompletion(search )
+type channelParentCacheEntry struct {
+	lastUpdate time.Time
+	parentID   string
+}
+
+var channelParentCache = map[string]channelParentCacheEntry{}
+
+func getChannelParentID(s *dg.Session, channelID string) (string, error) {
+	if entry, ok := channelParentCache[channelID]; ok {
+		if time.Since(entry.lastUpdate) > 1*time.Hour {
+			go func() {
+				ch, err := s.Channel(channelID)
+				if err != nil {
+					slog.Error("error while background fetching", "channelID", channelID, "err", err)
+					return
+				}
+				channelParentCache[channelID] = channelParentCacheEntry{lastUpdate: time.Now(), parentID: ch.ParentID}
+			}()
+		}
+		return entry.parentID, nil
+	} else {
+		ch, err := s.Channel(channelID)
+		if err != nil {
+			return "", err
+		}
+		channelParentCache[channelID] = channelParentCacheEntry{lastUpdate: time.Now(), parentID: ch.ParentID}
+		return ch.ParentID, nil
+	}
+}
