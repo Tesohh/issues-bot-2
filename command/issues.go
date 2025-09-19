@@ -126,6 +126,21 @@ var Issue = slash.Command{
 					&codeOpt,
 				},
 			},
+			{
+				Type:        dg.ApplicationCommandOptionSubCommand,
+				Name:        "dependson",
+				Description: "toggles a dependency to another pre-existing issue",
+				Options: []*dg.ApplicationCommandOption{
+					{
+						Type:         dg.ApplicationCommandOptionInteger,
+						Name:         "target",
+						Description:  "which issue to toggle as a dependency",
+						Required:     true,
+						Autocomplete: true,
+					},
+					&codeOpt,
+				},
+			},
 		},
 	},
 	Func: func(s *dg.Session, i *dg.Interaction) error {
@@ -206,6 +221,13 @@ var Issue = slash.Command{
 		case "tags":
 			tags := options["tags"].StringValue()
 			err = IssueTags(s, i, &issue, tags, remote)
+		case "dependson":
+			id := options["target"].IntValue()
+			target, err := db.Issues.Select("id, thread_id").Where("id = ?", id).First(db.Ctx)
+			if err != nil {
+				return err
+			}
+			err = IssueDependsOn(s, i, &issue, &target, remote)
 		}
 
 		if err != nil {
@@ -485,6 +507,36 @@ func IssueTags(s *dg.Session, i *dg.Interaction, issue *db.Issue, tagsRaw string
 		prettyTags = issue.PrettyTags(999, 999)
 	}
 	msg := fmt.Sprintf("<@%s> replaced tags with %s", i.Member.User.ID, prettyTags)
+	if remote {
+		_, err := s.ChannelMessageSend(issue.ThreadID, msg)
+		return err
+	} else {
+		return slash.ReplyWithText(s, i, msg, false)
+	}
+}
+
+func IssueDependsOn(s *dg.Session, i *dg.Interaction, issue *db.Issue, target *db.Issue, remote bool) error {
+	relationship := db.Relationship{
+		FromIssueID: issue.ID,
+		ToIssueID:   target.ID,
+		Kind:        db.RelationshipKindDependency,
+	}
+	result := db.Conn.Table("relationships").FirstOrCreate(&relationship)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	msg := ""
+	if result.RowsAffected == 0 { // it existed already; remove it
+		err := db.Conn.Table("relationships").Delete(&relationship).Error
+		if err != nil {
+			return err
+		}
+		msg = fmt.Sprintf("<@%s> removed <#%s> as a dependency", i.Member.User.ID, target.ThreadID)
+	} else {
+		msg = fmt.Sprintf("<@%s> added <#%s> as a dependency", i.Member.User.ID, target.ThreadID)
+	}
+
 	if remote {
 		_, err := s.ChannelMessageSend(issue.ThreadID, msg)
 		return err

@@ -5,7 +5,7 @@ import "time"
 type RelationshipKind string
 
 const (
-	RelationshipKindDependency RelationshipKind = ""
+	RelationshipKindDependency RelationshipKind = "dependency"
 )
 
 type Relationship struct {
@@ -19,5 +19,5 @@ type Relationship struct {
 	ToIssueID uint
 	ToIssue   Issue
 
-	Kind RelationshipKind `gorm:"check:kind in ('')"`
+	Kind RelationshipKind `gorm:"check:kind in ('dependency')"`
 }
