@@ -132,7 +132,7 @@ var Issue = slash.Command{
 				Description: "toggles a dependency to another pre-existing issue",
 				Options: []*dg.ApplicationCommandOption{
 					{
-						Type:         dg.ApplicationCommandOptionInteger,
+						Type:         dg.ApplicationCommandOptionString,
 						Name:         "target",
 						Description:  "which issue to toggle as a dependency",
 						Required:     true,
@@ -222,7 +222,7 @@ var Issue = slash.Command{
 			tags := options["tags"].StringValue()
 			err = IssueTags(s, i, &issue, tags, remote)
 		case "dependson":
-			id := options["target"].IntValue()
+			id := options["target"].StringValue()
 			target, err := db.Issues.Select("id, thread_id").Where("id = ?", id).First(db.Ctx)
 			if err != nil {
 				return err

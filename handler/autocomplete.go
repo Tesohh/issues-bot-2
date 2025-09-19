@@ -1,10 +1,12 @@
 package handler
 
 import (
+	"fmt"
 	"issues/v2/db"
 	"issues/v2/man"
 	"log/slog"
 	"strings"
+	"time"
 
 	dg "github.com/bwmarrin/discordgo"
 )
@@ -18,38 +20,60 @@ func Autocomplete(s *dg.Session, i *dg.InteractionCreate) {
 	case "issue":
 		subcommand := command.Options[0]
 		switch subcommand.Name {
-		case "tag":
-			value := ""
-			if len(subcommand.Options) > 0 {
-				value = subcommand.Options[0].StringValue()
-			}
-			_ = value
-
-			channel, err := s.Channel(i.ChannelID)
+		case "dependson":
+			start := time.Now()
+			ch, err := s.Channel(i.ChannelID)
 			if err != nil {
-				slog.Error("error while getting channel for issue tags autocomplete", "err", err)
+				slog.Error("error while fetching channel during issue completions", "err", err)
 				return
 			}
+			fmt.Printf("(channel) time elapsed ms: %d\n", time.Since(start).Milliseconds())
+
+			parent, err := s.Channel(ch.ParentID)
+			if err != nil {
+				slog.Error("error while fetching parent channel during issue completions", "err", err)
+				return
+			}
+			fmt.Printf("(parent) time elapsed ms: %d\n", time.Since(start).Milliseconds())
+			theFamily := []string{parent.ID}
+
+			grandParent, err := s.Channel(parent.ParentID)
+			if err == nil {
+				theFamily = append(theFamily, grandParent.ID)
+				return
+			}
+			fmt.Printf("(grandparent) time elapsed ms: %d\n", time.Since(start).Milliseconds())
 
 			project, err := db.Projects.
-				Select("id").
-				Where("discord_category_channel_id = ?", channel.ParentID).
-				Or("issues_input_channel_id = ?", channel.ParentID).
+				Select("id, prefix").
+				Where("discord_category_channel_id IN ?", theFamily).
 				First(db.Ctx)
+
+			fmt.Printf("(project) time elapsed ms: %d\n", time.Since(start).Milliseconds())
+
+			search := subcommand.Options[0].StringValue()
+			issues, err := db.Issues.
+				Select("id, status, code, title").
+				Where("project_id = ?", project.ID).
+				Where("title LIKE ?", "%"+search+"%").
+				Limit(5).
+				Find(db.Ctx)
 			if err != nil {
-				slog.Error("error while getting project for issue tags autocompelte", "err", err)
+				slog.Error("error while fetching issue completions", "err", err)
 				return
 			}
+			fmt.Printf("(issues) time elapsed ms: %d\n", time.Since(start).Milliseconds())
 
-			// get all tags from this project
-			tags, err := db.Tags.Where("project_id = ?", project.ID).Find(db.Ctx)
-			if err != nil {
-				slog.Error("error while getting all tags for issue tags autocompelte", "err", err)
-				return
+			for i := range issues {
+				issues[i].Project = project
+
+				choices = append(choices, &dg.ApplicationCommandOptionChoice{
+					Name:  issues[i].ChannelName(),
+					Value: fmt.Sprint(issues[i].ID),
+				})
 			}
-			_ = tags
 
-			// TODO: get the issue, check it's tags and then do completion
+			fmt.Printf("(done) time elapsed ms: %d\n", time.Since(start).Milliseconds())
 		}
 	case "man":
 		search := command.Options[0].StringValue()
@@ -74,3 +98,5 @@ func Autocomplete(s *dg.Session, i *dg.InteractionCreate) {
 		}
 	}
 }
+
+// func issueAutocompletion(search )
