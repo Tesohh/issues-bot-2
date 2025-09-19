@@ -64,22 +64,23 @@ func MakeDependenciesContainer(issue *db.Issue, relationships db.RelationshipsBy
 		return container, false
 	}
 
-	if len(relationships.Inbound) > 0 {
-		container.Components = append(container.Components, dg.TextDisplay{Content: "### Dependants"})
-	}
+	str := ""
 	for _, relationship := range relationships.Inbound {
 		if relationship.Kind == db.RelationshipKindDependency {
 
 			tags := relationship.ToIssue.PrettyTags(MaxTagsCount, MaxTagLength)
-			preview := fmt.Sprintf("- %s %s %s %s",
+			str += fmt.Sprintf("\n- %s %s %s %s",
 				relationship.FromIssue.PrettyLink(len(fmt.Sprint(*relationship.FromIssue.Code))),
 				relationship.FromIssue.RoleEmojis(),
 				relationship.FromIssue.CutTitle(MaxTitleLength-len(tags)),
 				tags,
 			)
 
-			container.Components = append(container.Components, dg.TextDisplay{Content: preview})
 		}
+	}
+	if len(relationships.Inbound) > 0 {
+		container.Components = append(container.Components, dg.TextDisplay{Content: fmt.Sprintf("### Dependants `[%d]`", len(relationships.Inbound))})
+		container.Components = append(container.Components, dg.TextDisplay{Content: str})
 	}
 
 	if len(relationships.Outbound) > 0 {
@@ -165,14 +166,14 @@ func MakeIssueThreadDetail(issue *db.Issue, relationships db.RelationshipsByDire
 				makeAssignMeButton(issue),
 			},
 		},
-		dg.Separator{
-			Divider: slash.Ptr(false),
-			Spacing: slash.Ptr(dg.SeparatorSpacingSizeLarge),
-		},
 	}
 
 	dependenciesContainer, ok := MakeDependenciesContainer(issue, relationships)
 	if ok {
+		allComponents = append(allComponents, dg.Separator{
+			Divider: slash.Ptr(false),
+			Spacing: slash.Ptr(dg.SeparatorSpacingSizeLarge),
+		})
 		allComponents = append(allComponents, dependenciesContainer)
 	}
 

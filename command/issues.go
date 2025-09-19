@@ -232,7 +232,15 @@ var Issue = slash.Command{
 		case "dependson":
 			id := options["target"].StringValue()
 			var target db.Issue
-			target, err = db.Issues.Select("id, thread_id").Where("id = ?", id).First(db.Ctx)
+			target, err = db.Issues.
+				Preload("Tags", nil).
+				Preload("AssigneeUsers", nil).
+				Preload("Project", func(db gorm.PreloadBuilder) error {
+					db.Select("ID", "Prefix")
+					return nil
+				}).
+				Where("id = ?", id).
+				First(db.Ctx)
 			if err != nil {
 				return err
 			}
@@ -564,6 +572,28 @@ func IssueDependsOn(s *dg.Session, i *dg.Interaction, issue *db.Issue, target *d
 		}
 		msg = fmt.Sprintf("<@%s> removed <#%s> as a dependency", i.Member.User.ID, target.ThreadID)
 	}
+
+	// Refresh the view of the other issue
+	guild, err := db.Guilds.Select("nobody_role_id").Where("id = ?", i.GuildID).First(db.Ctx)
+	if err != nil {
+		return err
+	}
+
+	relationships, err := logic.GetIssueRelationshipsOfKind(target, db.RelationshipKindDependency)
+	if err != nil {
+		return err
+	}
+
+	err = logic.UpdateIssueThreadDetail(s, target, relationships, guild.NobodyRoleID)
+	if err != nil {
+		return err
+	}
+
+	err = logic.UpdateAllInteractiveIssuesViews(s, target.ProjectID)
+	if err != nil {
+		return err
+	}
+	// Finish refreshing other issue
 
 	if remote {
 		_, err := s.ChannelMessageSend(issue.ThreadID, msg)
