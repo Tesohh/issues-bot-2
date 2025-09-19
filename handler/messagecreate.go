@@ -169,6 +169,64 @@ func messageCreate(s *dg.Session, m *dg.MessageCreate) error {
 		return err
 	}
 
+	relationships := []db.Relationship{}
+	for _, relCapture := range captures.DependsOnChannelIDs {
+		// get the target issue from the capture channelID
+		target, err := db.Issues.
+			Preload("Tags", nil).
+			Preload("AssigneeUsers", nil).
+			Preload("Project", func(db gorm.PreloadBuilder) error {
+				db.Select("ID", "Prefix")
+				return nil
+			}).
+			Where("thread_id = ?", relCapture).
+			First(db.Ctx)
+		if err == gorm.ErrRecordNotFound {
+			// if it's not an issue, ignore it and move on
+			continue
+		} else if err != nil {
+			return err
+		}
+
+		// but if it is,
+		// add the relationship
+		relationship := db.Relationship{
+			FromIssueID: issue.ID,
+			ToIssueID:   target.ID,
+			Kind:        db.RelationshipKindDependency,
+		}
+		err = db.Relationships.Create(db.Ctx, &relationship)
+		if err != nil {
+			return err
+		}
+		relationship.FromIssue = issue
+		relationship.ToIssue = target
+		relationships = append(relationships, relationship)
+
+		// refresh target's view (in a goroutine)
+		go func() {
+			relationships, err := logic.GetIssueRelationshipsOfKind(&target, db.RelationshipKindDependency)
+			if err != nil {
+				slog.Error("error while getting relationship view after shorthand", "issue", issue.ID, "target", target.ID)
+				return
+			}
+
+			err = logic.UpdateIssueThreadDetail(s, &target, relationships, guild.NobodyRoleID)
+			if err != nil {
+				slog.Error("error while updating target view after shorthand", "issue", issue.ID, "target", target.ID)
+				return
+			}
+		}()
+	}
+
+	// if there are any relationships, update THIS issue's view
+	if len(relationships) > 0 {
+		err = logic.UpdateIssueThreadDetail(s, &issue, db.RelationshipsByDirection{Outbound: relationships}, guild.NobodyRoleID)
+		if err != nil {
+			return err
+		}
+	}
+
 	// update all lists
 	return logic.UpdateAllInteractiveIssuesViews(s, project.ID)
 }

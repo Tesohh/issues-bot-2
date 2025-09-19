@@ -36,6 +36,7 @@ func Autocomplete(s *dg.Session, i *dg.InteractionCreate) {
 			slog.Error("error while executing issueAutocomplete", "err", err)
 			return
 		}
+
 	case "man":
 		search := command.Options[0].StringValue()
 		for _, page := range man.Pages {
