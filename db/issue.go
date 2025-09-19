@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"issues/v2/helper"
+	"log/slog"
 	"strings"
 	"time"
 
@@ -96,6 +97,10 @@ func (issue *Issue) ChannelName() string {
 // this outputs a 84 character string, considering the code is 4 digits long
 // Requires issue.Project.GuildID to be set, or else the link will be broken
 func (issue *Issue) PrettyLink(longestCodeLen int) string {
+	if issue.Project.GuildID == "" {
+		slog.Warn("issue.PrettyLink() called without issue.Project.GuildID", "issue.ID", issue.ID)
+	}
+
 	codePaddingFmt := fmt.Sprintf("%%0%dd", longestCodeLen)
 	codeFmt := fmt.Sprintf(codePaddingFmt, *issue.Code)
 	return fmt.Sprintf("[`%s #%s`](https://discord.com/channels/%s/%s)",
