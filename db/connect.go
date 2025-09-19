@@ -2,10 +2,14 @@ package db
 
 import (
 	"context"
+	"log"
 	"log/slog"
+	"os"
+	"time"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 var Conn *gorm.DB
@@ -23,7 +27,17 @@ var Ctx = context.Background()
 
 func Connect(path string) (*gorm.DB, error) {
 	slog.Info("Connecting to db at", "path", path)
-	db, err := gorm.Open(sqlite.Open(path))
+	newLogger := logger.New(
+		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+		logger.Config{
+			SlowThreshold:             time.Second, // Slow SQL threshold
+			LogLevel:                  logger.Info, // Log level
+			IgnoreRecordNotFoundError: true,        // Ignore ErrRecordNotFound error for logger
+			ParameterizedQueries:      true,        // Don't include params in the SQL log
+			Colorful:                  false,       // Disable color
+		},
+	)
+	db, err := gorm.Open(sqlite.Open(path), &gorm.Config{Logger: newLogger})
 	if err != nil {
 		return nil, err
 	}

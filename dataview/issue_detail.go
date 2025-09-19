@@ -1,6 +1,7 @@
 package dataview
 
 import (
+	"crypto/rand"
 	"fmt"
 	"issues/v2/db"
 	"issues/v2/slash"
@@ -81,7 +82,7 @@ func MakeDependenciesContainer(issue *db.Issue, relationships []db.Relationship)
 				Components: []dg.MessageComponent{
 					dg.TextDisplay{Content: preview},
 				},
-				Accessory: dg.Button{CustomID: "select", Label: "Select", Style: dg.SecondaryButton}, // TODO:
+				Accessory: dg.Button{CustomID: "select" + rand.Text(), Label: "Select", Style: dg.SecondaryButton}, // TODO:
 			})
 		}
 	}

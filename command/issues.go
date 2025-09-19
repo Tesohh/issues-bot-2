@@ -522,25 +522,32 @@ func IssueTags(s *dg.Session, i *dg.Interaction, issue *db.Issue, tagsRaw string
 }
 
 func IssueDependsOn(s *dg.Session, i *dg.Interaction, issue *db.Issue, target *db.Issue, remote bool) error {
-	relationship := db.Relationship{
-		FromIssueID: issue.ID,
-		ToIssueID:   target.ID,
-		Kind:        db.RelationshipKindDependency,
-	}
-	result := db.Conn.Table("relationships").FirstOrCreate(&relationship)
-	if result.Error != nil {
-		return result.Error
+	relationship, err := db.Relationships.
+		Where("from_issue_id = ?", issue.ID).
+		Where("to_issue_id = ?", target.ID).
+		Where("kind = ?", db.RelationshipKindDependency).
+		First(db.Ctx)
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return err
 	}
 
 	msg := ""
-	if result.RowsAffected == 0 { // it existed already; remove it
-		err := db.Conn.Table("relationships").Delete(&relationship).Error
+	if err == gorm.ErrRecordNotFound {
+		err := db.Relationships.Create(db.Ctx, &db.Relationship{
+			FromIssueID: issue.ID,
+			ToIssueID:   target.ID,
+			Kind:        db.RelationshipKindDependency,
+		})
+		if err != nil {
+			return err
+		}
+		msg = fmt.Sprintf("<@%s> added <#%s> as a dependency", i.Member.User.ID, target.ThreadID)
+	} else { // it existed already; remove it
+		_, err = db.Relationships.Where("id = ?", relationship.ID).Delete(db.Ctx)
 		if err != nil {
 			return err
 		}
 		msg = fmt.Sprintf("<@%s> removed <#%s> as a dependency", i.Member.User.ID, target.ThreadID)
-	} else {
-		msg = fmt.Sprintf("<@%s> added <#%s> as a dependency", i.Member.User.ID, target.ThreadID)
 	}
 
 	if remote {
