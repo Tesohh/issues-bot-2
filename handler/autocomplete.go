@@ -21,43 +21,20 @@ func Autocomplete(s *dg.Session, i *dg.InteractionCreate) {
 		subcommand := command.Options[0]
 		switch subcommand.Name {
 		case "dependson":
-			parentID, err := getChannelParentID(s, i.ChannelID)
+			var err error
+			choices, err = issueAutocomplete(s, i, subcommand.Options[0])
 			if err != nil {
-				slog.Error("error while fetching parent channel during issue completions", "err", err)
+				slog.Error("error while executing issueAutocomplete", "err", err)
 				return
 			}
-			theFamily := []string{parentID}
+		}
 
-			grandParentID, err := getChannelParentID(s, parentID)
-			if err == nil {
-				theFamily = append(theFamily, grandParentID)
-			}
-
-			project, err := db.Projects.
-				Select("id, prefix").
-				Where("discord_category_channel_id IN ?", theFamily).
-				First(db.Ctx)
-
-			search := subcommand.Options[0].StringValue()
-			issues, err := db.Issues.
-				Select("id, status, code, title").
-				Where("project_id = ?", project.ID).
-				Where("title LIKE ?", "%"+search+"%").
-				Limit(5).
-				Find(db.Ctx)
-			if err != nil {
-				slog.Error("error while fetching issue completions", "err", err)
-				return
-			}
-
-			for i := range issues {
-				issues[i].Project = project
-
-				choices = append(choices, &dg.ApplicationCommandOptionChoice{
-					Name:  issues[i].ChannelName(),
-					Value: fmt.Sprint(issues[i].ID),
-				})
-			}
+	case "new":
+		var err error
+		choices, err = issueAutocomplete(s, i, command.GetOption("dependson"))
+		if err != nil {
+			slog.Error("error while executing issueAutocomplete", "err", err)
+			return
 		}
 	case "man":
 		search := command.Options[0].StringValue()
@@ -81,6 +58,48 @@ func Autocomplete(s *dg.Session, i *dg.InteractionCreate) {
 			return
 		}
 	}
+}
+
+func issueAutocomplete(s *dg.Session, i *dg.InteractionCreate, searchOpt *dg.ApplicationCommandInteractionDataOption) ([]*dg.ApplicationCommandOptionChoice, error) {
+	parentID, err := getChannelParentID(s, i.ChannelID)
+	if err != nil {
+		return nil, err
+	}
+	theFamily := []string{parentID}
+
+	grandParentID, err := getChannelParentID(s, parentID)
+	if err == nil {
+		theFamily = append(theFamily, grandParentID)
+	}
+
+	project, err := db.Projects.
+		Select("id, prefix").
+		Where("discord_category_channel_id IN ?", theFamily).
+		First(db.Ctx)
+
+	// search := subcommand.Options[0].StringValue()
+	search := searchOpt.StringValue()
+	issues, err := db.Issues.
+		Select("id, status, code, title").
+		Where("project_id = ?", project.ID).
+		Where("title LIKE ?", "%"+search+"%").
+		Limit(5).
+		Find(db.Ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	choices := []*dg.ApplicationCommandOptionChoice{}
+	for i := range issues {
+		issues[i].Project = project
+
+		choices = append(choices, &dg.ApplicationCommandOptionChoice{
+			Name:  issues[i].ChannelName(),
+			Value: fmt.Sprint(issues[i].ID),
+		})
+	}
+
+	return choices, nil
 }
 
 type channelParentCacheEntry struct {
