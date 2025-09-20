@@ -33,8 +33,8 @@ func MakeIssueMainDetail(issue *db.Issue, nobodyRoleID string) dg.Container {
 
 			dg.TextDisplay{
 				Content: fmt.Sprintf(
-					"**Category**: <@&%s>\n**Priority**: <@&%s>",
-					issue.CategoryRoleID, issue.PriorityRoleID),
+					"**Priority**: <@&%s>\n**Category**: <@&%s>",
+					issue.PriorityRoleID, issue.CategoryRoleID),
 			},
 
 			dg.Separator{},
