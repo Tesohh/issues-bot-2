@@ -50,6 +50,11 @@ func issueSetStatus(s *dg.Session, i *dg.InteractionCreate, args []string) error
 		return err
 	}
 
+	err = logic.UpdateDependencyDetails(s, i.Interaction, &issue)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -80,6 +85,11 @@ func issueToggleAuthorAssignee(s *dg.Session, i *dg.InteractionCreate, args []st
 	}
 
 	err = logic.UpdateAllInteractiveIssuesViews(s, issue.ProjectID)
+	if err != nil {
+		return err
+	}
+
+	err = logic.UpdateDependencyDetails(s, i.Interaction, &issue)
 	if err != nil {
 		return err
 	}

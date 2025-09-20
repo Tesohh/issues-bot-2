@@ -273,6 +273,11 @@ var Issue = slash.Command{
 			return err
 		}
 
+		err = logic.UpdateDependencyDetails(s, i, &issue)
+		if err != nil {
+			return err
+		}
+
 		if remote {
 			return slash.ReplyWithText(s, i,
 				fmt.Sprintf("Executed remote `%s` operation on <#%s>",
