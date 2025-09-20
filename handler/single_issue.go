@@ -4,6 +4,7 @@ import (
 	"issues/v2/command"
 	"issues/v2/db"
 	"issues/v2/logic"
+	"log/slog"
 
 	dg "github.com/bwmarrin/discordgo"
 )
@@ -50,10 +51,13 @@ func issueSetStatus(s *dg.Session, i *dg.InteractionCreate, args []string) error
 		return err
 	}
 
-	err = logic.UpdateDependencyDetails(s, i.Interaction, &issue)
-	if err != nil {
-		return err
-	}
+	go func() {
+		err = logic.UpdateDependencyDetails(s, i.Interaction, &issue)
+		if err != nil {
+			slog.Error("error while updating dependency details after running Set Status button", "issue.ID", issue.ID, "err", err)
+			return
+		}
+	}()
 
 	return nil
 }
@@ -89,10 +93,13 @@ func issueToggleAuthorAssignee(s *dg.Session, i *dg.InteractionCreate, args []st
 		return err
 	}
 
-	err = logic.UpdateDependencyDetails(s, i.Interaction, &issue)
-	if err != nil {
-		return err
-	}
+	go func() {
+		err = logic.UpdateDependencyDetails(s, i.Interaction, &issue)
+		if err != nil {
+			slog.Error("error while updating dependency details after running Assign Me button", "issue.ID", issue.ID, "err", err)
+			return
+		}
+	}()
 
 	return nil
 }

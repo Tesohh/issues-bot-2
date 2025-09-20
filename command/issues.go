@@ -273,10 +273,13 @@ var Issue = slash.Command{
 			return err
 		}
 
-		err = logic.UpdateDependencyDetails(s, i, &issue)
-		if err != nil {
-			return err
-		}
+		go func() {
+			err = logic.UpdateDependencyDetails(s, i, &issue)
+			if err != nil {
+				slog.Error("error while updating dependency details after running /issue command", "issue.ID", issue.ID, "err", err)
+				return
+			}
+		}()
 
 		if remote {
 			return slash.ReplyWithText(s, i,
