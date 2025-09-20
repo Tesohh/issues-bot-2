@@ -78,14 +78,28 @@ func MakeDependenciesContainer(issue *db.Issue, relationships db.RelationshipsBy
 
 		}
 	}
+
 	if len(relationships.Inbound) > 0 {
-		container.Components = append(container.Components, dg.TextDisplay{Content: fmt.Sprintf("### Dependants `[%d]`", len(relationships.Inbound))})
+		title := fmt.Sprintf("### Dependants `[%d]`", len(relationships.Inbound))
+		container.Components = append(container.Components, dg.TextDisplay{Content: title})
 		container.Components = append(container.Components, dg.TextDisplay{Content: str})
 	}
 
 	if len(relationships.Outbound) > 0 {
-		container.Components = append(container.Components, dg.TextDisplay{Content: "### Dependencies"})
+		completed := 0
+		total := 0
+		for _, r := range relationships.Outbound {
+			if r.ToIssue.Status == db.IssueStatusDone {
+				completed += 1
+				total += 1
+			} else if r.ToIssue.Status != db.IssueStatusCancelled {
+				total += 1
+			}
+		}
+		title := fmt.Sprintf("### Dependencies `[%d/%d]`", completed, total)
+		container.Components = append(container.Components, dg.TextDisplay{Content: title})
 	}
+
 	for _, relationship := range relationships.Outbound {
 		if relationship.Kind == db.RelationshipKindDependency {
 			tags := relationship.ToIssue.PrettyTags(MaxTagsCount, MaxTagLength)
