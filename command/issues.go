@@ -589,23 +589,6 @@ func IssueDependsOn(s *dg.Session, i *dg.Interaction, issue *db.Issue, target *d
 		msg = fmt.Sprintf("<@%s> removed <#%s> as a dependency", i.Member.User.ID, target.ThreadID)
 	}
 
-	// Refresh the view of the other issue
-	guild, err := db.Guilds.Select("nobody_role_id").Where("id = ?", i.GuildID).First(db.Ctx)
-	if err != nil {
-		return err
-	}
-
-	relationships, err := logic.GetIssueRelationshipsOfKind(target, db.RelationshipKindDependency)
-	if err != nil {
-		return err
-	}
-
-	err = logic.UpdateIssueThreadDetail(s, target, relationships, guild.NobodyRoleID)
-	if err != nil {
-		return err
-	}
-	// Finish refreshing other issue
-
 	if remote {
 		_, err := s.ChannelMessageSend(issue.ThreadID, msg)
 		return err
