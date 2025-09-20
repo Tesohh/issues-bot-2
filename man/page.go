@@ -18,6 +18,7 @@ type PageMaker func(*dg.Session, *dg.Interaction) ([]dg.MessageComponent, error)
 var Pages = map[string]Page{
 	"shorthand":                 Shorthand,
 	"priorities-and-categories": PrioritiesAndCategories,
+	"dependencies":              Dependencies,
 }
 
 func dePijpToBackticks(s string) string {
