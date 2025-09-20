@@ -408,6 +408,17 @@ func IssueMark(s *dg.Session, i *dg.Interaction, issue *db.Issue, subcommand str
 	case "doing":
 		issueStatus = db.IssueStatusDoing
 	case "done":
+		relationships, err := logic.GetIssueRelationshipsOfKind(issue, db.RelationshipKindDependency)
+		if err != nil {
+			return err
+		}
+
+		for _, r := range relationships.Outbound {
+			if r.ToIssue.Status == db.IssueStatusTodo || r.ToIssue.Status == db.IssueStatusDoing {
+				return ErrIssueIsBlockedByDependencies
+			}
+		}
+
 		issueStatus = db.IssueStatusDone
 		archive = true
 		autoArchiveDuration = 60
