@@ -56,7 +56,10 @@ var List = slash.Command{
 			}
 
 			query := db.Projects.
-				Preload("Issues", nil).
+				Preload("Issues", func(query gorm.PreloadBuilder) error {
+					query.Where("kind = ?", db.IssueKindNormal)
+					return nil
+				}).
 				Preload("Issues.Tags", nil).
 				Preload("Issues.PriorityRole", nil).
 				Preload("Issues.CategoryRole", nil)

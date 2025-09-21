@@ -37,9 +37,13 @@ func UpdateDependencyDetails(s *dg.Session, i *dg.Interaction, issue *db.Issue) 
 
 	// dependencies
 	for _, r := range relationships.Outbound {
-		target, err := db.IssueQueryWithDependencies().Where("id = ?", r.ToIssueID).First(db.Ctx)
+		target, err := db.Issues.Select("id,kind").Where("id = ?", r.ToIssueID).First(db.Ctx)
 		if err != nil {
 			return err
+		}
+
+		if target.Kind == db.IssueKindTask {
+			continue
 		}
 
 		targetRelationships, err := GetIssueRelationshipsOfKind(&target, db.RelationshipKindDependency)

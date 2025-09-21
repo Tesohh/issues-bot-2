@@ -17,7 +17,7 @@ import (
 var New = slash.Command{
 	ApplicationCommand: dg.ApplicationCommand{
 		Name:        "new",
-		Description: "Adds a new issue if you're in a #xxx-issues channel, or adds a task if you're in a issue thread",
+		Description: "Adds a new issue if you're in a #xxx-issues channel",
 		Options: []*dg.ApplicationCommandOption{
 			{
 				Name:        "title",

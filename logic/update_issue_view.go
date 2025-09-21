@@ -7,6 +7,7 @@ import (
 	"time"
 
 	dg "github.com/bwmarrin/discordgo"
+	"gorm.io/gorm"
 )
 
 // updates a single view
@@ -21,7 +22,10 @@ func UpdateInteractiveIssuesView(s *dg.Session, messageID string, page0 bool) er
 	}
 
 	state, err := db.ProjectViewStates.
-		Preload("Project.Issues", nil).
+		Preload("Project.Issues", func(query gorm.PreloadBuilder) error {
+			query.Where("kind = ?", db.IssueKindNormal)
+			return nil
+		}).
 		Preload("Project.Issues.Tags", nil).
 		Preload("Project.Issues.PriorityRole", nil).
 		Preload("Project.Issues.CategoryRole", nil).
@@ -46,7 +50,10 @@ func UpdateInteractiveIssuesView(s *dg.Session, messageID string, page0 bool) er
 // also purges old lists
 func UpdateAllInteractiveIssuesViews(s *dg.Session, projectID uint) error {
 	project, err := db.Projects.
-		Preload("Issues", nil).
+		Preload("Issues", func(query gorm.PreloadBuilder) error {
+			query.Where("kind = ?", db.IssueKindNormal)
+			return nil
+		}).
 		Preload("Issues.Tags", nil).
 		Preload("Issues.PriorityRole", nil).
 		Preload("Issues.CategoryRole", nil).

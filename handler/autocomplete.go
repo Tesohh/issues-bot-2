@@ -82,6 +82,7 @@ func issueAutocomplete(s *dg.Session, i *dg.InteractionCreate, searchOpt *dg.App
 	search := searchOpt.StringValue()
 	issues, err := db.Issues.
 		Select("id, status, code, title").
+		Where("kind = ?", db.IssueKindNormal).
 		Where("project_id = ?", project.ID).
 		Where("title LIKE ?", "%"+search+"%").
 		Limit(5).

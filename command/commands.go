@@ -7,6 +7,7 @@ import (
 var Commands = map[string]*slash.Command{
 	"project": &Project,
 	"issue":   &Issue,
+	"task":    &Task,
 	"new":     &New,
 	"list":    &List,
 	"reset":   &Reset,

@@ -199,7 +199,7 @@ var Issue = slash.Command{
 
 		issue, err := query.First(db.Ctx)
 		if err == gorm.ErrRecordNotFound {
-			return ErrNotInIssueThread
+			return ErrNotInIssueThreadAndNoCode
 		}
 
 		switch subcommand.Name {

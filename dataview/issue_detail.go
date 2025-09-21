@@ -102,13 +102,20 @@ func MakeDependenciesContainer(issue *db.Issue, relationships db.RelationshipsBy
 
 	for _, relationship := range relationships.Outbound {
 		if relationship.Kind == db.RelationshipKindDependency {
-			tags := relationship.ToIssue.PrettyTags(MaxTagsCount, MaxTagLength)
-			preview := fmt.Sprintf("- %s %s %s %s",
-				relationship.ToIssue.PrettyLink(len(fmt.Sprint(*relationship.ToIssue.Code))),
-				relationship.ToIssue.RoleEmojis(),
-				relationship.ToIssue.CutTitle(MaxTitleLength-len(tags)),
-				tags,
-			)
+			preview := ""
+
+			switch relationship.ToIssue.Kind {
+			case db.IssueKindNormal:
+				tags := relationship.ToIssue.PrettyTags(MaxTagsCount, MaxTagLength)
+				preview = fmt.Sprintf("- %s %s %s %s",
+					relationship.ToIssue.PrettyLink(len(fmt.Sprint(*relationship.ToIssue.Code))),
+					relationship.ToIssue.RoleEmojis(),
+					relationship.ToIssue.CutTitle(MaxTitleLength-len(tags)),
+					tags,
+				)
+			case db.IssueKindTask:
+				preview = "- " + relationship.ToIssue.PrettyTask(MaxTitleLength+((MaxTagLength+3)*MaxTagsCount))
+			}
 
 			container.Components = append(container.Components, dg.Section{
 				Components: []dg.MessageComponent{

@@ -85,7 +85,15 @@ func (issue *Issue) HumanCode() string {
 	if len(issue.Project.Prefix) > 0 {
 		projectName = strings.ToUpper(issue.Project.Prefix)
 	}
-	return fmt.Sprintf("#%s-%d", projectName, *issue.Code)
+
+	code := ""
+	if issue.Code == nil {
+		code = "NIL"
+	} else {
+		code = fmt.Sprint(*issue.Code)
+	}
+
+	return fmt.Sprintf("#%s-%s", projectName, code)
 }
 
 // Requires issue.Project.Prefix to be set, or else the prefix will be ???
@@ -129,4 +137,20 @@ func (issue *Issue) PrettyTags(maxTags int, maxTagLen int) string {
 // Requires PriorityRole and CategoryRole to be set
 func (issue *Issue) RoleEmojis() string {
 	return fmt.Sprintf("%s %s", issue.PriorityRole.Emoji, issue.CategoryRole.Emoji)
+}
+
+func (issue *Issue) PrettyTask(maxTitleLength int) string {
+	if issue.Kind != IssueKindTask {
+		slog.Warn("PrettyTask() called on a non task", "id", issue.ID)
+	}
+
+	completionSymbol := "???"
+	switch issue.Status {
+	case IssueStatusTodo:
+		completionSymbol = ":green_circle:"
+	case IssueStatusDone:
+		completionSymbol = ":purple_circle:"
+	}
+
+	return fmt.Sprintf("%s %s", completionSymbol, issue.CutTitle(maxTitleLength))
 }
