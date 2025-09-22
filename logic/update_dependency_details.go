@@ -6,13 +6,13 @@ import (
 	dg "github.com/bwmarrin/discordgo"
 )
 
-func UpdateDependencyDetails(s *dg.Session, i *dg.Interaction, issue *db.Issue) error {
+func UpdateDependencyDetails(s *dg.Session, guild_id string, issue *db.Issue) error {
 	relationships, err := GetIssueRelationshipsOfKind(issue, db.RelationshipKindDependency)
 	if err != nil {
 		return err
 	}
 
-	guild, err := db.Guilds.Select("nobody_role_id").Where("id = ?", i.GuildID).First(db.Ctx)
+	guild, err := db.Guilds.Select("nobody_role_id").Where("id = ?", guild_id).First(db.Ctx)
 	if err != nil {
 		return err
 	}

@@ -274,7 +274,7 @@ var Issue = slash.Command{
 		}
 
 		go func() {
-			err = logic.UpdateDependencyDetails(s, i, &issue)
+			err = logic.UpdateDependencyDetails(s, i.GuildID, &issue)
 			if err != nil {
 				slog.Error("error while updating dependency details after running /issue command", "issue.ID", issue.ID, "err", err)
 				return

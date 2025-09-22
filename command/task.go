@@ -60,7 +60,7 @@ var Task = slash.Command{
 			return err
 		}
 
-		err = logic.UpdateEverythingAboutSingleIssue(s, i, &issue)
+		err = logic.UpdateEverythingAboutSingleIssue(s, i.GuildID, &issue)
 		if err != nil {
 			return err
 		}

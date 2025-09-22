@@ -52,7 +52,7 @@ func issueSetStatus(s *dg.Session, i *dg.InteractionCreate, args []string) error
 	}
 
 	go func() {
-		err = logic.UpdateDependencyDetails(s, i.Interaction, &issue)
+		err = logic.UpdateDependencyDetails(s, i.GuildID, &issue)
 		if err != nil {
 			slog.Error("error while updating dependency details after running Set Status button", "issue.ID", issue.ID, "err", err)
 			return
@@ -94,7 +94,7 @@ func issueToggleAuthorAssignee(s *dg.Session, i *dg.InteractionCreate, args []st
 	}
 
 	go func() {
-		err = logic.UpdateDependencyDetails(s, i.Interaction, &issue)
+		err = logic.UpdateDependencyDetails(s, i.GuildID, &issue)
 		if err != nil {
 			slog.Error("error while updating dependency details after running Assign Me button", "issue.ID", issue.ID, "err", err)
 			return

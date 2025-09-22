@@ -5,7 +5,10 @@ import (
 )
 
 func GetIssueCode(issue *db.Issue) (uint, error) {
-	count, err := db.Issues.Where("project_id = ?", issue.ProjectID).Count(db.Ctx, "id")
+	count, err := db.Issues.
+		Where("project_id = ?", issue.ProjectID).
+		Where("kind = ?", db.IssueKindNormal).
+		Count(db.Ctx, "id")
 	if err != nil {
 		return 0, err
 	}

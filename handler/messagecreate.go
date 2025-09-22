@@ -52,13 +52,71 @@ func messageCreate(s *dg.Session, m *dg.MessageCreate) error {
 
 	// check if we're in a project
 	project, err := db.Projects.Where("issues_input_channel_id = ?", m.ChannelID).First(db.Ctx)
-	if err == gorm.ErrRecordNotFound {
-		return nil // safely ignore the ErrRecordNotFound
-	} else if err != nil {
+	if err == nil {
+		return addIssueFromShorthand(s, m, &project)
+	} else if err != gorm.ErrRecordNotFound {
+		// bubble up every error except for RecordNotFound
 		return err
 	}
-	_ = project
 
+	issue, err := db.IssueQueryWithDependencies().Where("thread_id = ?", m.ChannelID).First(db.Ctx)
+	if err == nil {
+		return addTaskFromShorthand(s, m, &issue)
+	} else if err != gorm.ErrRecordNotFound {
+		// bubble up every error except for RecordNotFound
+		return nil
+	}
+
+	// the user is neither trying to add an issue, neither a task.
+	// they probably are just trying to input a list or something
+	return nil
+}
+
+func addTaskFromShorthand(s *dg.Session, m *dg.MessageCreate, issue *db.Issue) error {
+	title := strings.Join(strings.Fields(m.Content), " ")
+
+	// create the task in the DB
+	task := db.Issue{
+		Code:            nil,
+		Title:           title,
+		Status:          db.IssueStatusTodo,
+		Kind:            db.IssueKindTask,
+		ProjectID:       issue.ProjectID,
+		RecruiterUserID: issue.RecruiterUserID,
+		AssigneeUsers:   issue.AssigneeUsers,
+		CategoryRoleID:  issue.CategoryRoleID,
+		PriorityRoleID:  issue.PriorityRoleID,
+	}
+
+	err := db.Issues.Create(db.Ctx, &task)
+	if err != nil {
+		return err
+	}
+
+	// create the relationship in the DB
+	relationship := db.Relationship{
+		FromIssueID: issue.ID,
+		ToIssueID:   task.ID,
+		Kind:        db.RelationshipKindDependency,
+	}
+
+	err = db.Relationships.Create(db.Ctx, &relationship)
+	if err != nil {
+		return err
+	}
+
+	s.ChannelMessageDelete(m.ChannelID, m.ID)
+
+	msg := fmt.Sprintf("<@%s> added task `%s`", m.Author.ID, task.CutTitle(25))
+	_, err = s.ChannelMessageSend(issue.ThreadID, msg)
+	if err != nil {
+		return err
+	}
+
+	return logic.UpdateEverythingAboutSingleIssue(s, m.GuildID, issue)
+}
+
+func addIssueFromShorthand(s *dg.Session, m *dg.MessageCreate, project *db.Project) error {
 	// get the guild
 	guild, err := db.Guilds.
 		Select("id, generic_category_role_id, normal_priority_role_id, nobody_role_id").
@@ -138,7 +196,7 @@ func messageCreate(s *dg.Session, m *dg.MessageCreate) error {
 		Tags:            tags,
 		Status:          db.IssueStatusTodo,
 		ProjectID:       project.ID,
-		Project:         project,
+		Project:         *project,
 		RecruiterUserID: m.Author.ID,
 		AssigneeUsers:   assignees,
 		CategoryRoleID:  mentions.categoryRoleID,
@@ -157,7 +215,6 @@ func messageCreate(s *dg.Session, m *dg.MessageCreate) error {
 		return fmt.Errorf("error in thread creation: %w", err)
 	}
 
-	// TEMP: Relationships
 	err = logic.InitIssueThread(&issue, db.RelationshipsByDirection{}, &guild, thread, s)
 	if err != nil {
 		return err
