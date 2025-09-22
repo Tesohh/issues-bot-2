@@ -1,7 +1,6 @@
 package dataview
 
 import (
-	"crypto/rand"
 	"fmt"
 	"issues/v2/db"
 	"issues/v2/helper"
@@ -109,25 +108,37 @@ func MakeDependenciesContainer(issue *db.Issue, relationships db.RelationshipsBy
 	for _, relationship := range paginatedDeps {
 		if relationship.Kind == db.RelationshipKindDependency {
 			preview := ""
+			button := dg.Button{}
 
 			switch relationship.ToIssue.Kind {
 			case db.IssueKindNormal:
 				tags := relationship.ToIssue.PrettyTags(MaxTagsCount, MaxTagLength)
-				preview = fmt.Sprintf("- %s %s %s %s",
+
+				strokethrough := ""
+				if relationship.ToIssue.Status == db.IssueStatusDone || relationship.ToIssue.Status == db.IssueStatusCancelled {
+					strokethrough = "~~"
+				}
+
+				// return fmt.Sprintf("%s%s%s", strokethrough, task.CutTitle(maxTitleLength), strokethrough)
+				preview = fmt.Sprintf("- %s %s %s%s %s%s",
 					relationship.ToIssue.PrettyLink(len(fmt.Sprint(*relationship.ToIssue.Code))),
 					relationship.ToIssue.RoleEmojis(),
+					strokethrough,
 					relationship.ToIssue.CutTitle(MaxTitleLength-len(tags)),
 					tags,
+					strokethrough,
 				)
+				button = makeDependencyNextStatusButton(&relationship.ToIssue)
 			case db.IssueKindTask:
 				preview = "- " + relationship.ToIssue.PrettyTask(MaxTitleLength+((MaxTagLength+3)*MaxTagsCount))
+				button = makeTaskCheckButton(issue, &relationship.ToIssue)
 			}
 
 			container.Components = append(container.Components, dg.Section{
 				Components: []dg.MessageComponent{
 					dg.TextDisplay{Content: preview},
 				},
-				Accessory: dg.Button{CustomID: "select" + rand.Text(), Label: "Select", Style: dg.SecondaryButton}, // TODO:
+				Accessory: button,
 			})
 		}
 	}
@@ -159,6 +170,43 @@ func MakeDependenciesPaginationButtons(issue *db.Issue, relationships db.Relatio
 	}
 
 	return arrowButtons, true
+}
+
+func makeDependencyNextStatusButton(issue *db.Issue) dg.Button {
+	label := ""
+	style := dg.SecondaryButton
+	status := db.IssueStatusTodo
+	disabled := false
+	emoji := ""
+
+	switch issue.Status {
+	case db.IssueStatusTodo:
+		label += "todo"
+		status = db.IssueStatusDoing
+		emoji = db.IssueStatusIcons[db.IssueStatusDoing]
+	case db.IssueStatusDoing:
+		label += "doing"
+		status = db.IssueStatusDone
+		emoji = db.IssueStatusIcons[db.IssueStatusDone]
+	case db.IssueStatusDone:
+		label += "done"
+		status = db.IssueStatusTodo
+		emoji = db.IssueStatusIcons[db.IssueStatusTodo]
+	case db.IssueStatusCancelled:
+		label += "cancelled"
+		status = db.IssueStatusCancelled
+		emoji = db.IssueStatusIcons[db.IssueStatusCancelled]
+		disabled = true
+	}
+
+	_ = emoji
+	return dg.Button{
+		Label:    label,
+		Style:    style,
+		CustomID: fmt.Sprintf("issue-set-status:%d:%d", issue.ID, status),
+		Disabled: disabled,
+		// Emoji:    &dg.ComponentEmoji{Name: emoji},
+	}
 }
 
 func makeIssueNextStateButton(issue *db.Issue) dg.Button {
@@ -198,6 +246,33 @@ func makeIssueNextStateButton(issue *db.Issue) dg.Button {
 		CustomID: fmt.Sprintf("issue-set-status:%d:%d", issue.ID, status),
 		Disabled: disabled,
 		Emoji:    &dg.ComponentEmoji{Name: emoji},
+	}
+}
+
+func makeTaskCheckButton(issue *db.Issue, task *db.Issue) dg.Button {
+	label := ""
+	style := dg.SecondaryButton
+	status := db.IssueStatusTodo
+	disabled := false
+	emoji := dg.ComponentEmoji{}
+
+	switch task.Status {
+	case db.IssueStatusTodo:
+		label = ""
+		status = db.IssueStatusDone
+		emoji = db.TaskStatusEmoji[db.IssueStatusTodo]
+	case db.IssueStatusDone:
+		label = ""
+		status = db.IssueStatusTodo
+		emoji = db.TaskStatusEmoji[db.IssueStatusDone]
+	}
+
+	return dg.Button{
+		Label:    label,
+		Style:    style,
+		CustomID: fmt.Sprintf("issue-dep-set-status:%d:%d:%d", issue.ID, task.ID, status),
+		Disabled: disabled,
+		Emoji:    &emoji,
 	}
 }
 

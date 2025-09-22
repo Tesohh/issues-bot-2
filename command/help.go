@@ -81,7 +81,7 @@ var Help = slash.Command{
 
 		container := dg.Container{
 			Components: []dg.MessageComponent{
-				dg.TextDisplay{Content: "# Help"},
+				dg.TextDisplay{Content: "# Help <:task_done:1419771887608795277>"},
 				dg.Separator{},
 				dg.TextDisplay{Content: str},
 			},

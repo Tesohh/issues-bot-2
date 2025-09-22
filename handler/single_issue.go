@@ -26,7 +26,7 @@ func issueSetStatus(s *dg.Session, i *dg.InteractionCreate, args []string) error
 	case "3":
 		subcommand = "cancelled"
 	}
-	err = command.IssueMark(s, i.Interaction, &issue, subcommand, false)
+	err = command.IssueMark(s, i.Interaction, &issue, subcommand, true)
 	if err != nil {
 		return err
 	}
@@ -68,7 +68,7 @@ func issueToggleAuthorAssignee(s *dg.Session, i *dg.InteractionCreate, args []st
 		return err
 	}
 
-	err = command.IssueAssign(s, i.Interaction, &issue, &dg.User{ID: i.Member.User.ID}, false)
+	err = command.IssueAssign(s, i.Interaction, &issue, &dg.User{ID: i.Member.User.ID}, true)
 	if err != nil {
 		return err
 	}

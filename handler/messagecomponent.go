@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"issues/v2/slash"
 	"log/slog"
 	"strings"
 
@@ -28,7 +29,7 @@ var messageComponentHandlers = map[string]messageComponentHandler{
 	"issues-filter-people": {1, true, issuesFilterPeople},
 	"issues-filter-data":   {1, true, issuesFilterData},
 
-	"issue-set-status":             {2, false, issueSetStatus},
+	"issue-set-status":             {2, true, issueSetStatus},
 	"issue-toggle-author-assignee": {1, true, issueToggleAuthorAssignee},
 
 	"issue-deps-goto": {2, true, issueDepsGoto},
@@ -57,6 +58,12 @@ func MessageComponent(s *dg.Session, i *dg.InteractionCreate) {
 
 	err := handler.handler(s, i, args)
 	if err != nil {
+		embed := dg.MessageEmbed{
+			Title:       "Error",
+			Description: err.Error(),
+			Color:       0xFF0000,
+		}
+		slash.ReplyWithEmbed(s, i.Interaction, embed, true)
 		slog.Error("message component handler error", "err", err, "args", args)
 	}
 	if handler.ack {

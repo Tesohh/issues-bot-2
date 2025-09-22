@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bwmarrin/discordgo"
 	"gorm.io/gorm"
 )
 
@@ -23,6 +24,13 @@ const (
 var IssueStatusIcons = []string{"🟩", "🟦", "🟪", "🟥"}
 var IssueStatusColors = []int{0x7cb45c, 0x54acee, 0xa98ed6, 0xdd2e44}
 var IssueStatusNames = []string{"todo", "doing", "done", "cancelled"}
+
+var TaskStatusEmoji = []discordgo.ComponentEmoji{
+	{Name: "task_todo", ID: "1419771788782604329"},
+	{Name: "❓", ID: ""},
+	{Name: "task_done", ID: "1419771887608795277"},
+	{Name: "❓", ID: ""},
+}
 
 type IssueKind string
 
@@ -141,18 +149,15 @@ func (issue *Issue) RoleEmojis() string {
 	return fmt.Sprintf("%s %s", issue.PriorityRole.Emoji, issue.CategoryRole.Emoji)
 }
 
-func (issue *Issue) PrettyTask(maxTitleLength int) string {
-	if issue.Kind != IssueKindTask {
-		slog.Warn("PrettyTask() called on a non task", "id", issue.ID)
+func (task *Issue) PrettyTask(maxTitleLength int) string {
+	if task.Kind != IssueKindTask {
+		slog.Warn("PrettyTask() called on a non task", "id", task.ID)
 	}
 
-	completionSymbol := "???"
-	switch issue.Status {
-	case IssueStatusTodo:
-		completionSymbol = ":green_circle:"
-	case IssueStatusDone:
-		completionSymbol = ":purple_circle:"
+	strokethrough := ""
+	if task.Status == IssueStatusDone {
+		strokethrough = "~~"
 	}
 
-	return fmt.Sprintf("%s %s", completionSymbol, issue.CutTitle(maxTitleLength))
+	return fmt.Sprintf("%s%s%s", strokethrough, task.CutTitle(maxTitleLength), strokethrough)
 }

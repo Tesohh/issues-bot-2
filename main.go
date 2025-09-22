@@ -40,6 +40,11 @@ func main() {
 	session.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		slog.Info(fmt.Sprintf("Logged in as: %v#%v", s.State.User.Username, s.State.User.Discriminator))
 		session.UpdateGameStatus(0, "Dips Mobile 2")
+
+		if s.State.User.ID == "1296720376885153813" {
+			db.TaskStatusEmoji[db.IssueStatusTodo].ID = "1419773189646454875"
+			db.TaskStatusEmoji[db.IssueStatusDone].ID = "1419773212199485595"
+		}
 	})
 
 	err = session.Open()
