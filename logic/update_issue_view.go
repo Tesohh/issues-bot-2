@@ -35,6 +35,10 @@ func UpdateInteractiveIssuesView(s *dg.Session, messageID string, page0 bool) er
 		return err
 	}
 
+	for i := range state.Project.Issues {
+		state.Project.Issues[i].Project.GuildID = state.Project.GuildID
+	}
+
 	components := dataview.MakeInteractiveIssuesView(state.Project.Issues, &state, false)
 	_, err = s.ChannelMessageEditComplex(&dg.MessageEdit{
 		Components: &components,
