@@ -10,7 +10,7 @@ import (
 	dg "github.com/bwmarrin/discordgo"
 )
 
-const MaxDependenciesPerPage int = 5
+const MaxDependenciesPerPage int = 7
 
 func MakeIssueMainDetail(issue *db.Issue, nobodyRoleID string) dg.Container {
 	assigneeIDs := []string{}
@@ -153,10 +153,8 @@ func MakeDependenciesPaginationButtons(issue *db.Issue, relationships db.Relatio
 
 	arrowButtons := dg.ActionsRow{
 		Components: []dg.MessageComponent{
-			dg.Button{Emoji: &dg.ComponentEmoji{Name: "⏮️"}, Style: dg.SecondaryButton, CustomID: fmt.Sprintf("issue-deps-goto:%d:%d:bigleft", issue.ID, 0), Disabled: leftDisable},
 			dg.Button{Emoji: &dg.ComponentEmoji{Name: "⬅️"}, Style: dg.SecondaryButton, CustomID: fmt.Sprintf("issue-deps-goto:%d:%d:left", issue.ID, issue.UIDepsCurrentPage-1), Disabled: leftDisable},
 			dg.Button{Emoji: &dg.ComponentEmoji{Name: "➡️"}, Style: dg.SecondaryButton, CustomID: fmt.Sprintf("issue-deps-goto:%d:%d:right", issue.ID, issue.UIDepsCurrentPage+1), Disabled: rightDisable},
-			dg.Button{Emoji: &dg.ComponentEmoji{Name: "⏭️"}, Style: dg.SecondaryButton, CustomID: fmt.Sprintf("issue-deps-goto:%d:%d:bigright", issue.ID, pages-1), Disabled: rightDisable},
 		},
 	}
 
