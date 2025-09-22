@@ -30,6 +30,8 @@ var messageComponentHandlers = map[string]messageComponentHandler{
 
 	"issue-set-status":             {2, false, issueSetStatus},
 	"issue-toggle-author-assignee": {1, true, issueToggleAuthorAssignee},
+
+	"issue-deps-goto": {2, true, issueDepsGoto},
 }
 
 // component custom ids need to be in this format: action:arg0:arg1

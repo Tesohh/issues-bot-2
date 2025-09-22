@@ -58,6 +58,8 @@ type Issue struct {
 	PriorityRoleID string
 	PriorityRole   Role
 
+	UIDepsCurrentPage int
+
 	ThreadID  string
 	MessageID string
 }

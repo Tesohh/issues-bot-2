@@ -4,10 +4,13 @@ import (
 	"crypto/rand"
 	"fmt"
 	"issues/v2/db"
+	"issues/v2/helper"
 	"issues/v2/slash"
 
 	dg "github.com/bwmarrin/discordgo"
 )
+
+const MaxDependenciesPerPage int = 5
 
 func MakeIssueMainDetail(issue *db.Issue, nobodyRoleID string) dg.Container {
 	assigneeIDs := []string{}
@@ -79,7 +82,8 @@ func MakeDependenciesContainer(issue *db.Issue, relationships db.RelationshipsBy
 		}
 	}
 
-	if len(relationships.Inbound) > 0 {
+	// Show dependants only on the first page
+	if issue.UIDepsCurrentPage == 0 && len(relationships.Inbound) > 0 {
 		title := fmt.Sprintf("### Dependants `[%d]`", len(relationships.Inbound))
 		container.Components = append(container.Components, dg.TextDisplay{Content: title})
 		container.Components = append(container.Components, dg.TextDisplay{Content: str})
@@ -100,7 +104,9 @@ func MakeDependenciesContainer(issue *db.Issue, relationships db.RelationshipsBy
 		container.Components = append(container.Components, dg.TextDisplay{Content: title})
 	}
 
-	for _, relationship := range relationships.Outbound {
+	paginatedDeps := helper.Paginate(relationships.Outbound, MaxDependenciesPerPage, issue.UIDepsCurrentPage)
+
+	for _, relationship := range paginatedDeps {
 		if relationship.Kind == db.RelationshipKindDependency {
 			preview := ""
 
@@ -126,7 +132,35 @@ func MakeDependenciesContainer(issue *db.Issue, relationships db.RelationshipsBy
 		}
 	}
 
+	pages := helper.Pages(relationships.Outbound, MaxDependenciesPerPage)
+	if pages > 1 {
+		pageText := fmt.Sprintf("\n-# page %d/%d", issue.UIDepsCurrentPage+1, pages)
+		container.Components = append(container.Components, dg.TextDisplay{Content: pageText})
+	}
+
 	return container, true
+}
+
+func MakeDependenciesPaginationButtons(issue *db.Issue, relationships db.RelationshipsByDirection) (dg.ActionsRow, bool) {
+	if len(relationships.Outbound) < MaxDependenciesPerPage {
+		return dg.ActionsRow{}, false
+	}
+
+	pages := helper.Pages(relationships.Outbound, MaxDependenciesPerPage)
+
+	leftDisable := issue.UIDepsCurrentPage <= 0
+	rightDisable := issue.UIDepsCurrentPage >= pages-1
+
+	arrowButtons := dg.ActionsRow{
+		Components: []dg.MessageComponent{
+			dg.Button{Emoji: &dg.ComponentEmoji{Name: "⏮️"}, Style: dg.SecondaryButton, CustomID: fmt.Sprintf("issue-deps-goto:%d:%d:bigleft", issue.ID, 0), Disabled: leftDisable},
+			dg.Button{Emoji: &dg.ComponentEmoji{Name: "⬅️"}, Style: dg.SecondaryButton, CustomID: fmt.Sprintf("issue-deps-goto:%d:%d:left", issue.ID, issue.UIDepsCurrentPage-1), Disabled: leftDisable},
+			dg.Button{Emoji: &dg.ComponentEmoji{Name: "➡️"}, Style: dg.SecondaryButton, CustomID: fmt.Sprintf("issue-deps-goto:%d:%d:right", issue.ID, issue.UIDepsCurrentPage+1), Disabled: rightDisable},
+			dg.Button{Emoji: &dg.ComponentEmoji{Name: "⏭️"}, Style: dg.SecondaryButton, CustomID: fmt.Sprintf("issue-deps-goto:%d:%d:bigright", issue.ID, pages-1), Disabled: rightDisable},
+		},
+	}
+
+	return arrowButtons, true
 }
 
 func makeIssueNextStateButton(issue *db.Issue) dg.Button {
@@ -196,6 +230,10 @@ func MakeIssueThreadDetail(issue *db.Issue, relationships db.RelationshipsByDire
 			Spacing: slash.Ptr(dg.SeparatorSpacingSizeLarge),
 		})
 		allComponents = append(allComponents, dependenciesContainer)
+	}
+	dependenciesButtons, ok := MakeDependenciesPaginationButtons(issue, relationships)
+	if ok {
+		allComponents = append(allComponents, dependenciesButtons)
 	}
 
 	return allComponents
