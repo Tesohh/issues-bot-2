@@ -15,7 +15,8 @@ func Command(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		}
 		err := c.Func(s, i.Interaction)
 		if err != nil {
-			slog.Error(err.Error())
+			slog.Error("error from command", "cmd", i.ApplicationCommandData().Name, "userID", i.Member.User.ID, "err", err)
+
 			embed := discordgo.MessageEmbed{
 				Title:       "Error",
 				Description: err.Error(),
