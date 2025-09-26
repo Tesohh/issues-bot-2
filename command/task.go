@@ -10,6 +10,14 @@ import (
 	"gorm.io/gorm"
 )
 
+var taskOpt = dg.ApplicationCommandOption{
+	Type:         dg.ApplicationCommandOptionString,
+	Name:         "task",
+	Description:  "which task to act upon",
+	Required:     true,
+	Autocomplete: true,
+}
+
 var Task = slash.Command{
 	ApplicationCommand: dg.ApplicationCommand{
 		Name:        "task",
@@ -24,6 +32,32 @@ var Task = slash.Command{
 						Type:        dg.ApplicationCommandOptionString,
 						Name:        "title",
 						Description: "the title of the task",
+						Required:    true,
+					},
+				},
+			},
+			{
+				Type:        dg.ApplicationCommandOptionSubCommand,
+				Name:        "promote",
+				Description: "promotes a task into an issue",
+				Options:     []*dg.ApplicationCommandOption{&taskOpt},
+			},
+			{
+				Type:        dg.ApplicationCommandOptionSubCommand,
+				Name:        "toggle",
+				Description: "toggles task between todo and done",
+				Options:     []*dg.ApplicationCommandOption{&taskOpt},
+			},
+			{
+				Type:        dg.ApplicationCommandOptionSubCommand,
+				Name:        "rename",
+				Description: "changes the title of the task",
+				Options: []*dg.ApplicationCommandOption{
+					&taskOpt,
+					{
+						Type:        dg.ApplicationCommandOptionString,
+						Name:        "title",
+						Description: "the new title to set",
 						Required:    true,
 					},
 				},
@@ -50,10 +84,26 @@ var Task = slash.Command{
 			return err
 		}
 
+		task := db.Issue{}
+		if subcommand.Name != "new" {
+			id := opts["task"].StringValue()
+			task, err = db.Issues.Where("id = ?", id).First(db.Ctx)
+			if err != nil {
+				return err
+			}
+		}
+
 		switch subcommand.Name {
 		case "new":
 			title := opts["title"].StringValue()
 			err = TaskNew(s, i, &issue, title)
+		case "promote":
+			err = TaskPromote(s, i, &task)
+		case "toggle":
+			err = TaskToggle(s, i, &task)
+		case "rename":
+			title := opts["title"].StringValue()
+			err = TaskRename(s, i, &task, title)
 		}
 
 		if err != nil {
@@ -99,6 +149,22 @@ func TaskNew(s *dg.Session, i *dg.Interaction, issue *db.Issue, title string) er
 	if err != nil {
 		return err
 	}
+
+	msg := fmt.Sprintf("<@%s> added task `%s`", i.Member.User.ID, task.CutTitle(25))
+	return slash.ReplyWithText(s, i, msg, false)
+}
+
+func TaskPromote(s *dg.Session, i *dg.Interaction, task *db.Issue) error {
+	msg := fmt.Sprintf("<@%s> promoted task `%s` to <#%s>", i.Member.User.ID, task.CutTitle(25), task.ThreadID)
+	return slash.ReplyWithText(s, i, msg, false)
+}
+
+func TaskToggle(s *dg.Session, i *dg.Interaction, task *db.Issue) error {
+	msg := fmt.Sprintf("<@%s> checked / unchecked TODO: task `%s`", i.Member.User.ID, task.CutTitle(25))
+	return slash.ReplyWithText(s, i, msg, false)
+}
+
+func TaskRename(s *dg.Session, i *dg.Interaction, task *db.Issue, title string) error {
 
 	msg := fmt.Sprintf("<@%s> added task `%s`", i.Member.User.ID, task.CutTitle(25))
 	return slash.ReplyWithText(s, i, msg, false)

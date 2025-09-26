@@ -9,6 +9,7 @@ import (
 	"time"
 
 	dg "github.com/bwmarrin/discordgo"
+	"gorm.io/gorm"
 )
 
 func Autocomplete(s *dg.Session, i *dg.InteractionCreate) {
@@ -47,6 +48,16 @@ func Autocomplete(s *dg.Session, i *dg.InteractionCreate) {
 				})
 			}
 		}
+
+	case "task":
+		subcommand := command.Options[0]
+
+		var err error
+		choices, err = taskAutocomplete(s, i, subcommand.Options[0])
+		if err != nil {
+			slog.Error("error while executing issueAutocomplete", "err", err)
+			return
+		}
 	}
 
 	if respond {
@@ -61,13 +72,55 @@ func Autocomplete(s *dg.Session, i *dg.InteractionCreate) {
 	}
 }
 
+func taskAutocomplete(s *dg.Session, i *dg.InteractionCreate, searchOpt *dg.ApplicationCommandInteractionDataOption) ([]*dg.ApplicationCommandOptionChoice, error) {
+	search := searchOpt.StringValue()
+	issue, err := db.Issues.
+		Select("id").
+		Where("thread_id = ?", i.ChannelID).
+		First(db.Ctx)
+	if err == gorm.ErrRecordNotFound {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	}
+
+	relationships, err := db.Relationships.
+		Preload("ToIssue", func(query gorm.PreloadBuilder) error {
+			query.
+				Where("kind = ?", db.IssueKindTask).
+				Where("title LIKE ?", "%"+search+"%").
+				Select("id", "title", "status")
+			return nil
+		}).
+		Where("from_issue_id = ?", issue.ID).
+		Find(db.Ctx)
+
+	choices := []*dg.ApplicationCommandOptionChoice{}
+	for _, r := range relationships {
+		if r.ToIssue.ID == 0 {
+			continue
+		}
+
+		tick := ""
+		if r.ToIssue.Status == db.IssueStatusDone {
+			tick = "✅ "
+		}
+
+		choices = append(choices, &dg.ApplicationCommandOptionChoice{
+			Name:  tick + r.ToIssue.CutTitle(25),
+			Value: fmt.Sprint(r.ToIssue.ID),
+		})
+	}
+
+	return choices, nil
+}
+
 func issueAutocomplete(s *dg.Session, i *dg.InteractionCreate, searchOpt *dg.ApplicationCommandInteractionDataOption) ([]*dg.ApplicationCommandOptionChoice, error) {
 	parentID, err := getChannelParentID(s, i.ChannelID)
 	if err != nil {
 		return nil, err
 	}
 	theFamily := []string{parentID}
-
 	grandParentID, err := getChannelParentID(s, parentID)
 	if err == nil {
 		theFamily = append(theFamily, grandParentID)

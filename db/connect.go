@@ -13,7 +13,6 @@ import (
 )
 
 var Conn *gorm.DB
-
 var Roles gorm.Interface[Role]
 var Guilds gorm.Interface[Guild]
 var Users gorm.Interface[User]
