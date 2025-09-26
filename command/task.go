@@ -5,6 +5,7 @@ import (
 	"issues/v2/db"
 	"issues/v2/logic"
 	"issues/v2/slash"
+	"log/slog"
 
 	dg "github.com/bwmarrin/discordgo"
 	"gorm.io/gorm"
@@ -72,7 +73,7 @@ var Task = slash.Command{
 			Preload("Tags", nil).
 			Preload("AssigneeUsers", nil).
 			Preload("Project", func(db gorm.PreloadBuilder) error {
-				db.Select("ID", "Prefix", "GuildID")
+				db.Select("ID", "Prefix", "GuildID", "IssuesInputChannelID")
 				return nil
 			}).
 			Where("thread_id = ?", i.ChannelID).
@@ -91,6 +92,9 @@ var Task = slash.Command{
 			if err != nil {
 				return err
 			}
+
+			task.Project.IssuesInputChannelID = issue.Project.IssuesInputChannelID
+			task.Project.Prefix = issue.Project.Prefix
 		}
 
 		switch subcommand.Name {
@@ -155,6 +159,51 @@ func TaskNew(s *dg.Session, i *dg.Interaction, issue *db.Issue, title string) er
 }
 
 func TaskPromote(s *dg.Session, i *dg.Interaction, task *db.Issue) error {
+	task.Kind = db.IssueKindNormal
+	_, err := db.Issues.Where("id = ?", task.ID).Update(db.Ctx, "kind", db.IssueKindNormal)
+	if err != nil {
+		return err
+	}
+
+	code, err := logic.GetIssueCode(task)
+	if err != nil {
+		return fmt.Errorf("error in issue db insertion: %w", err)
+	}
+	task.Code = &code
+	_, err = db.Issues.Where("id = ?", task.ID).Update(db.Ctx, "code", code)
+	if err != nil {
+		return err
+	}
+
+	thread, err := s.ThreadStart(task.Project.IssuesInputChannelID, task.ChannelName(), dg.ChannelTypeGuildPublicThread, 10080)
+	if err != nil {
+		return err
+	}
+	task.ThreadID = thread.ID
+	_, err = db.Issues.Where("id = ?", task.ID).Update(db.Ctx, "thread_id", thread.ID)
+	if err != nil {
+		return err
+	}
+
+	err = s.ChannelMessageDelete(task.Project.IssuesInputChannelID, thread.ID)
+	if err != nil {
+		slog.Warn("couldn't delete thread start message. no big deal", "err", err)
+	}
+
+	guild, err := db.Guilds.Select("nobody_role_id").Where("id = ?", i.GuildID).First(db.Ctx)
+	if err != nil {
+		return err
+	}
+
+	err = logic.InitIssueThread(task, db.RelationshipsByDirection{}, &guild, thread, s)
+	if err != nil {
+		return err
+	}
+	_, err = db.Issues.Where("id = ?", task.ID).Update(db.Ctx, "message_id", task.MessageID)
+	if err != nil {
+		return err
+	}
+
 	msg := fmt.Sprintf("<@%s> promoted task `%s` to <#%s>", i.Member.User.ID, task.CutTitle(25), task.ThreadID)
 	return slash.ReplyWithText(s, i, msg, false)
 }
