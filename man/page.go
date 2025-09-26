@@ -19,6 +19,7 @@ var Pages = map[string]Page{
 	"shorthand":                 Shorthand,
 	"priorities-and-categories": PrioritiesAndCategories,
 	"dependencies":              Dependencies,
+	"tasks":                     Tasks,
 }
 
 func dePijpToBackticks(s string) string {
