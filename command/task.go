@@ -165,7 +165,14 @@ func TaskToggle(s *dg.Session, i *dg.Interaction, task *db.Issue) error {
 }
 
 func TaskRename(s *dg.Session, i *dg.Interaction, task *db.Issue, title string) error {
+	oldTask := *task
+	_, err := db.Issues.Where("id = ?", task.ID).Update(db.Ctx, "title", title)
+	if err != nil {
+		return err
+	}
 
-	msg := fmt.Sprintf("<@%s> added task `%s`", i.Member.User.ID, task.CutTitle(25))
+	task.Title = title
+
+	msg := fmt.Sprintf("<@%s> renamed task `%s` to `%s`", i.Member.User.ID, oldTask.CutTitle(25), task.CutTitle(25))
 	return slash.ReplyWithText(s, i, msg, false)
 }
