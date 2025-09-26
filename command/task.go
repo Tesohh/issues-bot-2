@@ -160,7 +160,25 @@ func TaskPromote(s *dg.Session, i *dg.Interaction, task *db.Issue) error {
 }
 
 func TaskToggle(s *dg.Session, i *dg.Interaction, task *db.Issue) error {
-	msg := fmt.Sprintf("<@%s> checked / unchecked TODO: task `%s`", i.Member.User.ID, task.CutTitle(25))
+	var status db.IssueStatus
+	var word string
+
+	switch task.Status {
+	case db.IssueStatusTodo:
+		status = db.IssueStatusDone
+		word = "checked"
+	case db.IssueStatusDone:
+		status = db.IssueStatusTodo
+		word = "unchecked"
+	}
+	_, err := db.Issues.Where("id = ?", task.ID).Update(db.Ctx, "status", status)
+	if err != nil {
+		return err
+	}
+
+	task.Status = status
+
+	msg := fmt.Sprintf("<@%s> %s task `%s`", i.Member.User.ID, word, task.CutTitle(25))
 	return slash.ReplyWithText(s, i, msg, false)
 }
 
