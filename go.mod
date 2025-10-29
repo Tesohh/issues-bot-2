@@ -3,7 +3,7 @@ module issues/v2
 go 1.24.5
 
 require (
-	github.com/bwmarrin/discordgo v0.29.0
+	github.com/bwmarrin/discordgo v0.29.1-0.20251026111432-6198d49a2e33
 	github.com/joho/godotenv v1.5.1
 	github.com/lmittmann/tint v1.1.2
 	gorm.io/driver/sqlite v1.6.0
