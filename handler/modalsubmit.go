@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"issues/v2/slash"
 	"log/slog"
 	"strings"
@@ -17,19 +16,13 @@ type modalSubmitHandler struct {
 	handler   modalSubmitHandlerFunc
 }
 
-var modalSubmitHandlers = map[string]messageComponentHandler{
+var modalSubmitHandlers = map[string]modalSubmitHandler{
 	"ping": {1, true, func(s *dg.Session, i *dg.InteractionCreate, args []string) error {
 		_, err := s.ChannelMessageSend(i.ChannelID, args[1])
 		return err
 	}},
-	"issues_filter_people_submit": {1, true, func(s *dg.Session, i *dg.InteractionCreate, args []string) error {
-		fmt.Printf("args: %v\n", args)
-		return nil
-	}},
-	"issues_filter_data_submit": {1, true, func(s *dg.Session, i *dg.InteractionCreate, args []string) error {
-		fmt.Printf("args: %v\n", args)
-		return nil
-	}},
+	"issues_filter_people_submit": {1, true, issuesFilterPeopleSubmit},
+	"issues_filter_data_submit":   {1, true, issuesFilterDataSubmit},
 }
 
 // component custom ids need to be in this format: action:arg0:arg1
