@@ -14,7 +14,7 @@ This also makes it very easy to see the relationships between issues.`),
 			media("https://i.ibb.co/spzv21Ws/immagine.png"),
 
 			text(`
-This is the same system that also powers **Tasks** (currently WIP).
+This is the same system that also powers [[Tasks]].
 
 ⚠️ If an issue has at least one open dependency (|🟩 todo| or |🟦 doing|), it cannot be closed until those dependencies are resolved.`),
 

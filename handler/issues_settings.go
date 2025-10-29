@@ -91,7 +91,7 @@ func issuesFilterPeople(s *dg.Session, i *dg.InteractionCreate, args []string) e
 				},
 				dg.Label{
 					Label:       "Assignees",
-					Description: "@YIELD for issues with no assignees (sorry for jank) (ALSO WIP: #YLD-15 and #YLD-16)",
+					Description: "@YIELD for issues with no assignees (sorry for jank)",
 					Component: dg.SelectMenu{
 						MenuType:    dg.UserSelectMenu,
 						CustomID:    "assignees",

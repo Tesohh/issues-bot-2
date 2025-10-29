@@ -8,7 +8,7 @@ var Shorthand = Page{
 	Func: func(s *dg.Session, i *dg.Interaction) ([]dg.MessageComponent, error) {
 		return []dg.MessageComponent{
 			text(`
-The shorthand syntax is the *most efficient way* to create new **Issues**, **Discussions (WIP)** and **Tasks (WIP)**.
+The shorthand syntax is the *most efficient way* to create new **Issues**, and **[[Tasks]]**.
 It is recommended to** always use this** instead of |/new| for a much *faster* and *frictionless* experience.
 Users of |v1| will be already familiar with it, as it remains mostly unchanged.
 
