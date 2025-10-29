@@ -27,6 +27,7 @@ func UpdateInteractiveIssuesView(s *dg.Session, messageID string, page0 bool) er
 			return nil
 		}).
 		Preload("Project.Issues.Tags", nil).
+		Preload("Project.Issues.AssigneeUsers", nil).
 		Preload("Project.Issues.PriorityRole", nil).
 		Preload("Project.Issues.CategoryRole", nil).
 		Where("message_id = ?", messageID).
