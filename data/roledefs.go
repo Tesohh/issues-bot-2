@@ -2,6 +2,7 @@ package data
 
 import (
 	"fmt"
+	"issues/v2/db"
 	"issues/v2/slash"
 	"strings"
 
@@ -21,6 +22,14 @@ func (role RoleDef) DisplayName() string {
 func (role RoleDef) AsChoice() *dg.ApplicationCommandOptionChoice {
 	return &dg.ApplicationCommandOptionChoice{
 		Name:  role.DisplayName(),
+		Value: role.Key,
+	}
+}
+
+func (role RoleDef) AsSelectChoice() dg.SelectMenuOption {
+	return dg.SelectMenuOption{
+		Label: strings.ToUpper(role.Key),
+		Emoji: &dg.ComponentEmoji{Name: role.Emoji},
 		Value: role.Key,
 	}
 }
@@ -66,4 +75,41 @@ var PriorityOptionChoices = []*dg.ApplicationCommandOptionChoice{
 	ImportantPriorityRole.AsChoice(),
 	NormalPriorityRole.AsChoice(),
 	LowPriorityRole.AsChoice(),
+}
+
+var CategoryOptionSelectChoices = []dg.SelectMenuOption{
+	GenericCategoryRole.AsSelectChoice(),
+	FeatureCategoryRole.AsSelectChoice(),
+	FixCategoryRole.AsSelectChoice(),
+	ChoreCategoryRole.AsSelectChoice(),
+}
+
+var PriorityOptionSelectChoices = []dg.SelectMenuOption{
+	CriticalPriorityRole.AsSelectChoice(),
+	ImportantPriorityRole.AsSelectChoice(),
+	NormalPriorityRole.AsSelectChoice(),
+	LowPriorityRole.AsSelectChoice(),
+}
+
+var StatusOptionSelectChoices = []dg.SelectMenuOption{
+	{
+		Label: db.IssueStatusNames[0],
+		Emoji: &dg.ComponentEmoji{Name: db.IssueStatusIcons[0]},
+		Value: "0",
+	},
+	{
+		Label: db.IssueStatusNames[1],
+		Emoji: &dg.ComponentEmoji{Name: db.IssueStatusIcons[1]},
+		Value: "1",
+	},
+	{
+		Label: db.IssueStatusNames[2],
+		Emoji: &dg.ComponentEmoji{Name: db.IssueStatusIcons[2]},
+		Value: "2",
+	},
+	{
+		Label: db.IssueStatusNames[3],
+		Emoji: &dg.ComponentEmoji{Name: db.IssueStatusIcons[3]},
+		Value: "3",
+	},
 }

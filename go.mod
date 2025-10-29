@@ -10,7 +10,7 @@ require (
 	gorm.io/gorm v1.30.1
 )
 
-replace github.com/bwmarrin/discordgo => github.com/Tesohh/discordgo v0.0.0-20251029160006-4c1ae5f666d9
+replace github.com/bwmarrin/discordgo => github.com/Tesohh/discordgo v0.0.0-20251029162331-8c0a2d67964e
 
 require (
 	github.com/gorilla/websocket v1.4.2 // indirect
