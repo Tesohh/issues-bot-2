@@ -10,6 +10,8 @@ func Router(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		Command(s, i)
 	case discordgo.InteractionMessageComponent:
 		MessageComponent(s, i)
+	case discordgo.InteractionModalSubmit:
+		ModalSubmit(s, i)
 	case discordgo.InteractionApplicationCommandAutocomplete:
 		Autocomplete(s, i)
 	}

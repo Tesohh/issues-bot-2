@@ -73,7 +73,7 @@ func issuesFilterPeople(s *dg.Session, i *dg.InteractionCreate, args []string) e
 	err := s.InteractionRespond(i.Interaction, &dg.InteractionResponse{
 		Type: dg.InteractionResponseModal,
 		Data: &dg.InteractionResponseData{
-			CustomID: "issues_filter_people_submit:" + i.Message.ChannelID,
+			CustomID: "issues_filter_people_submit:" + i.Message.ID,
 			Title:    "Filter people",
 			Flags:    dg.MessageFlagsIsComponentsV2,
 			Components: []dg.MessageComponent{
@@ -111,7 +111,7 @@ func issuesFilterData(s *dg.Session, i *dg.InteractionCreate, args []string) err
 	err := s.InteractionRespond(i.Interaction, &dg.InteractionResponse{
 		Type: dg.InteractionResponseModal,
 		Data: &dg.InteractionResponseData{
-			CustomID: "issues_filter_data_submit:" + i.Message.ChannelID,
+			CustomID: "issues_filter_data_submit:" + i.Message.ID,
 			Title:    "Filter data",
 			Flags:    dg.MessageFlagsIsComponentsV2,
 			Components: []dg.MessageComponent{
