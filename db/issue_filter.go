@@ -15,6 +15,7 @@ type IssueFilter struct {
 	CategoryRoleIDs []string
 	RecruiterIDs    []string
 	AssigneeIDs     []string
+	Nobody          bool
 	Title           string
 }
 
@@ -26,6 +27,7 @@ func DefaultFilter() IssueFilter {
 		CategoryRoleIDs: []string{},
 		RecruiterIDs:    []string{},
 		AssigneeIDs:     []string{},
+		Nobody:          false,
 		Title:           "",
 	}
 }
@@ -67,7 +69,11 @@ func (f IssueFilter) isValid(issue Issue) bool {
 		}
 	}
 
-	if len(f.AssigneeIDs) > 0 {
+	if f.Nobody {
+		if len(issue.AssigneeUsers) != 0 {
+			return false
+		}
+	} else if len(f.AssigneeIDs) > 0 {
 		ok := false
 		for _, assignee := range issue.AssigneeUsers {
 			if slices.Contains(f.AssigneeIDs, assignee.ID) {
