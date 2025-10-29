@@ -116,10 +116,14 @@ func (f IssueFilter) String() string {
 		keywords = append(keywords, fmt.Sprintf("<@&%s>", roleID))
 	}
 	for _, recruiterID := range f.RecruiterIDs {
-		keywords = append(keywords, fmt.Sprintf("<@%s>", recruiterID))
+		keywords = append(keywords, fmt.Sprintf("by <@%s>", recruiterID))
 	}
-	for _, assigneeID := range f.AssigneeIDs {
-		keywords = append(keywords, fmt.Sprintf("<@%s>", assigneeID))
+	if f.Nobody {
+		keywords = append(keywords, "nobody")
+	} else {
+		for _, assigneeID := range f.AssigneeIDs {
+			keywords = append(keywords, fmt.Sprintf("for <@%s>", assigneeID))
+		}
 	}
 	if len(f.Title) > 0 {
 		keywords = append(keywords, fmt.Sprintf("\"%s\"", f.Title))
