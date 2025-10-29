@@ -3,12 +3,14 @@ module issues/v2
 go 1.24.5
 
 require (
-	github.com/bwmarrin/discordgo v0.29.1-0.20251026111432-6198d49a2e33
+	github.com/bwmarrin/discordgo v0.29.1
 	github.com/joho/godotenv v1.5.1
 	github.com/lmittmann/tint v1.1.2
 	gorm.io/driver/sqlite v1.6.0
 	gorm.io/gorm v1.30.1
 )
+
+replace github.com/bwmarrin/discordgo => github.com/Tesohh/discordgo v0.0.0-20251029160006-4c1ae5f666d9
 
 require (
 	github.com/gorilla/websocket v1.4.2 // indirect

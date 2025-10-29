@@ -1,5 +1,5 @@
-github.com/bwmarrin/discordgo v0.29.1-0.20251026111432-6198d49a2e33 h1:fqt9wfP7ATtFfYLFg9NYkMzCSxUKClOxQVVWvM4cUdo=
-github.com/bwmarrin/discordgo v0.29.1-0.20251026111432-6198d49a2e33/go.mod h1:NJZpH+1AfhIcyQsPeuBKsUtYrRnjkyu0kIVMCHkZtRY=
+github.com/Tesohh/discordgo v0.0.0-20251029160006-4c1ae5f666d9 h1:Dk7GAmoTFdfjNevyhphXbqfMT00/raTwxtX13b1G82Q=
+github.com/Tesohh/discordgo v0.0.0-20251029160006-4c1ae5f666d9/go.mod h1:NJZpH+1AfhIcyQsPeuBKsUtYrRnjkyu0kIVMCHkZtRY=
 github.com/gorilla/websocket v1.4.2 h1:+/TMaTYc4QFitKJxsQ7Yye35DkWvkdLcvGKqM+x0Ufc=
 github.com/gorilla/websocket v1.4.2/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
 github.com/jinzhu/inflection v1.0.0 h1:K317FqzuhWc8YvSVlFMCCUb36O/S9MCKRDI7QkRKD/E=
