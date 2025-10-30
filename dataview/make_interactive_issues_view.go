@@ -107,7 +107,7 @@ func MakeInteractiveIssuesView(issues []db.Issue, state *db.ProjectViewState, du
 			makeSortByButton(state, dummy),
 			makeSortOrderButton(state, dummy),
 			dg.Button{Label: "Filter people...", Style: dg.SecondaryButton, CustomID: fmt.Sprintf("issues-filter-people:%s", msgID), Disabled: dummy},
-			dg.Button{Label: "Filter data... (WIP)", Style: dg.SecondaryButton, CustomID: fmt.Sprintf("issues-filter-data:%s", msgID), Disabled: dummy},
+			dg.Button{Label: "Filter data...", Style: dg.SecondaryButton, CustomID: fmt.Sprintf("issues-filter-data:%s", msgID), Disabled: dummy},
 		},
 	}
 	arrowButtons := dg.ActionsRow{
