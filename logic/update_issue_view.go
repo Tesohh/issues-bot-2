@@ -60,6 +60,7 @@ func UpdateAllInteractiveIssuesViews(s *dg.Session, projectID uint) error {
 			return nil
 		}).
 		Preload("Issues.Tags", nil).
+		Preload("Issues.AssigneeUsers", nil).
 		Preload("Issues.PriorityRole", nil).
 		Preload("Issues.CategoryRole", nil).
 		Where("id = ?", projectID).

@@ -95,7 +95,8 @@ func MakeInteractiveIssuesView(issues []db.Issue, state *db.ProjectViewState, du
 
 	prepared := state.Filter.Apply(issues)
 	prepared = state.Sorter.Apply(prepared)
-	pages := helper.Pages(issues, MaxIssuesPerPage)
+	pages := helper.Pages(prepared, MaxIssuesPerPage)
+	lenFilteredIssues := len(prepared)
 
 	leftDisable := dummy || state.CurrentPage <= 0
 	rightDisable := dummy || state.CurrentPage >= pages-1
@@ -122,7 +123,7 @@ func MakeInteractiveIssuesView(issues []db.Issue, state *db.ProjectViewState, du
 	prepared = helper.Paginate(prepared, MaxIssuesPerPage, state.CurrentPage)
 
 	// generate the view
-	view := MakeIssuesView(prepared, len(issues), state)
+	view := MakeIssuesView(prepared, lenFilteredIssues, state)
 
 	return []dg.MessageComponent{queryButtons, view, arrowButtons}
 }
