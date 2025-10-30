@@ -127,7 +127,54 @@ func issuesFilterPeople(s *dg.Session, i *dg.InteractionCreate, args []string) e
 }
 
 func issuesFilterData(s *dg.Session, i *dg.InteractionCreate, args []string) error {
-	err := s.InteractionRespond(i.Interaction, &dg.InteractionResponse{
+	state, err := db.ProjectViewStates.Where("message_id = ?", args[1]).First(db.Ctx)
+	if err != nil {
+		return err
+	}
+
+	priorityRoles, err := db.Roles.Where("guild_id = ?", i.GuildID).Where("kind = ?", db.RoleKindPriority).Find(db.Ctx)
+	if err != nil {
+		return err
+	}
+	priorityChoices := []dg.SelectMenuOption{}
+	for _, r := range priorityRoles {
+		priorityChoices = append(priorityChoices,
+			dg.SelectMenuOption{
+				Label:   strings.ToUpper(r.Key),
+				Emoji:   &dg.ComponentEmoji{Name: r.Emoji},
+				Value:   r.Key,
+				Default: slices.Contains(state.Filter.PriorityRoleIDs, r.ID),
+			},
+		)
+	}
+
+	categoryRoles, err := db.Roles.Where("guild_id = ?", i.GuildID).Where("kind = ?", db.RoleKindCategory).Find(db.Ctx)
+	if err != nil {
+		return err
+	}
+	categoryChoices := []dg.SelectMenuOption{}
+	for _, r := range categoryRoles {
+		categoryChoices = append(categoryChoices,
+			dg.SelectMenuOption{
+				Label:   strings.ToUpper(r.Key),
+				Emoji:   &dg.ComponentEmoji{Name: r.Emoji},
+				Value:   r.Key,
+				Default: slices.Contains(state.Filter.CategoryRoleIDs, r.ID),
+			},
+		)
+	}
+
+	statusChoices := []dg.SelectMenuOption{}
+	for i, choice := range data.StatusOptionSelectChoices {
+		choice.Default = slices.Contains(state.Filter.Statuses, db.IssueStatus(i))
+		statusChoices = append(statusChoices, choice)
+	}
+
+	defaultTags := strings.Join(state.Filter.Tags, ", ")
+
+	defaultTitle := state.Filter.Title
+
+	err = s.InteractionRespond(i.Interaction, &dg.InteractionResponse{
 		Type: dg.InteractionResponseModal,
 		Data: &dg.InteractionResponseData{
 			CustomID: "issues_filter_data_submit:" + i.Message.ID,
@@ -142,8 +189,7 @@ func issuesFilterData(s *dg.Session, i *dg.InteractionCreate, args []string) err
 						Placeholder: "filter by priority...",
 						MaxValues:   4,
 						Required:    false,
-						Options:     data.PriorityOptionSelectChoices,
-						// TODO: Add default values based on what was already selected
+						Options:     priorityChoices,
 					},
 				},
 				dg.Label{
@@ -154,8 +200,7 @@ func issuesFilterData(s *dg.Session, i *dg.InteractionCreate, args []string) err
 						Placeholder: "filter by category...",
 						MaxValues:   4,
 						Required:    false,
-						Options:     data.CategoryOptionSelectChoices,
-						// TODO: Add default values based on what was already selected
+						Options:     categoryChoices,
 					},
 				},
 				dg.Label{
@@ -166,8 +211,7 @@ func issuesFilterData(s *dg.Session, i *dg.InteractionCreate, args []string) err
 						Placeholder: "filter by status...",
 						MaxValues:   4,
 						Required:    false,
-						Options:     data.StatusOptionSelectChoices,
-						// TODO: Add default values based on what was already selected
+						Options:     statusChoices,
 					},
 				},
 				dg.Label{
@@ -177,7 +221,7 @@ func issuesFilterData(s *dg.Session, i *dg.InteractionCreate, args []string) err
 						Placeholder: "tag1, tag2, tag3...",
 						Style:       dg.TextInputShort,
 						Required:    false,
-						// TODO: Add default values based on what was already selected
+						Value:       defaultTags,
 					},
 				},
 				dg.Label{
@@ -187,7 +231,7 @@ func issuesFilterData(s *dg.Session, i *dg.InteractionCreate, args []string) err
 						Placeholder: "filter by title...",
 						Style:       dg.TextInputShort,
 						Required:    false,
-						// TODO: Add default values based on what was already selected
+						Value:       defaultTitle,
 					},
 				},
 			},
