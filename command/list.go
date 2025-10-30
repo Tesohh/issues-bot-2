@@ -38,6 +38,11 @@ var List = slash.Command{
 						Name:        "permanent",
 						Description: "if true, the list will never be purged",
 					},
+					{
+						Type:        dg.ApplicationCommandOptionString,
+						Name:        "title",
+						Description: "custom title for the list. Use `$n` to format with project name and `$p` for prefix.",
+					},
 				},
 			},
 			{
@@ -96,13 +101,19 @@ var List = slash.Command{
 				permanent = permanentOpt.BoolValue()
 			}
 
+			listNameFmt := "Issues in $n `[$p]`"
+			if listNameFmtOpt, ok := options["title"]; ok {
+				listNameFmt = listNameFmtOpt.StringValue()
+			}
+
 			// create a new state
 			state := db.ProjectViewState{
-				ProjectID: project.ID,
-				Project:   project,
-				Filter:    db.DefaultFilter(),
-				Sorter:    db.DefaultSorter(),
-				Permanent: permanent,
+				ProjectID:   project.ID,
+				Project:     project,
+				Filter:      db.DefaultFilter(),
+				Sorter:      db.DefaultSorter(),
+				Permanent:   permanent,
+				ListNameFmt: listNameFmt,
 			}
 
 			detached := false

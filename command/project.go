@@ -178,7 +178,7 @@ func ProjectNew(s *dg.Session, i *dg.Interaction, prefix string, name string, re
 		Filter:      db.DefaultFilter(),
 		Sorter:      db.DefaultSorter(),
 		Permanent:   true,
-		ListNameFmt: "# AutoList™️ for %s `[%s]`",
+		ListNameFmt: "AutoList™️ for $n `[$p]`",
 	}
 
 	err = logic.InitIssueViewDetached(s, i, inputChannel.ID, &state)
