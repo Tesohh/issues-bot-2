@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"issues/v2/db"
 	"issues/v2/logic"
 	"log/slog"
@@ -23,7 +22,6 @@ func issuesFilterPeopleSubmit(s *dg.Session, i *dg.InteractionCreate, args []str
 	}
 	state.Filter.RecruiterIDs = recruiterIDs
 	state.Filter.AssigneeIDs = assigneeIDs
-	fmt.Printf("assigneeIDs: %v, botid: %v\n", assigneeIDs, s.State.User.ID)
 	if len(assigneeIDs) == 1 && assigneeIDs[0] == s.State.User.ID {
 		state.Filter.Nobody = true
 		state.Filter.AssigneeIDs = []string{}

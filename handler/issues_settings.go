@@ -70,7 +70,26 @@ func issuesOrder(s *dg.Session, i *dg.InteractionCreate, args []string) error {
 }
 
 func issuesFilterPeople(s *dg.Session, i *dg.InteractionCreate, args []string) error {
-	err := s.InteractionRespond(i.Interaction, &dg.InteractionResponse{
+	state, err := db.ProjectViewStates.Where("message_id = ?", args[1]).First(db.Ctx)
+	if err != nil {
+		return err
+	}
+
+	recruitersDefault := []dg.SelectMenuDefaultValue{}
+	for _, id := range state.Filter.RecruiterIDs {
+		recruitersDefault = append(recruitersDefault, dg.SelectMenuDefaultValue{ID: id, Type: dg.SelectMenuDefaultValueUser})
+	}
+
+	assigneesDefault := []dg.SelectMenuDefaultValue{}
+	if state.Filter.Nobody {
+		assigneesDefault = append(assigneesDefault, dg.SelectMenuDefaultValue{ID: s.State.User.ID, Type: dg.SelectMenuDefaultValueUser})
+	} else {
+		for _, id := range state.Filter.AssigneeIDs {
+			assigneesDefault = append(assigneesDefault, dg.SelectMenuDefaultValue{ID: id, Type: dg.SelectMenuDefaultValueUser})
+		}
+	}
+
+	err = s.InteractionRespond(i.Interaction, &dg.InteractionResponse{
 		Type: dg.InteractionResponseModal,
 		Data: &dg.InteractionResponseData{
 			CustomID: "issues_filter_people_submit:" + i.Message.ID,
@@ -81,24 +100,24 @@ func issuesFilterPeople(s *dg.Session, i *dg.InteractionCreate, args []string) e
 					Label:       "Recruiters",
 					Description: "People who created the issue",
 					Component: dg.SelectMenu{
-						MenuType:    dg.UserSelectMenu,
-						CustomID:    "recruiters",
-						Placeholder: "filter by recruiters...",
-						MaxValues:   10,
-						Required:    false,
-						// TODO: Add default values based on what was already selected
+						MenuType:      dg.UserSelectMenu,
+						CustomID:      "recruiters",
+						Placeholder:   "filter by recruiters...",
+						MaxValues:     10,
+						Required:      false,
+						DefaultValues: recruitersDefault,
 					},
 				},
 				dg.Label{
 					Label:       "Assignees",
 					Description: "@YIELD for issues with no assignees (sorry for jank)",
 					Component: dg.SelectMenu{
-						MenuType:    dg.UserSelectMenu,
-						CustomID:    "assignees",
-						Placeholder: "filter by assignees...",
-						MaxValues:   10,
-						Required:    false,
-						// TODO: Add default values based on what was already selected
+						MenuType:      dg.UserSelectMenu,
+						CustomID:      "assignees",
+						Placeholder:   "filter by assignees...",
+						MaxValues:     10,
+						Required:      false,
+						DefaultValues: assigneesDefault,
 					},
 				},
 			},
