@@ -40,9 +40,10 @@ var PrioritiesAndCategories = Page{
 These roles are not categories or priorities but you can use them with the [[Shorthand Syntax]] to change the properties of the issues.
 See |/man page:Shorthand Syntax| for more.
 
-<@&%s> - Changes the issue type to a [[Discussion]].
 <@&%s> - Makes the issue not have any assignees, not even the author / recruiter.`,
-				guild.DiscussionRoleID, guild.NobodyRoleID),
+				guild.NobodyRoleID),
 		}, nil
 	},
 }
+
+//

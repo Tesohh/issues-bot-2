@@ -30,10 +30,10 @@ the |/new| equivalent would be: |/new title:add NUKE 3D raytraced graphics categ
 			text(`This is used to assign the issue to nobody, not even yourself as the recruiter.
 |/new| equivalent: |/new title:make the frontend nicer category:FEAT  priority:IMPORTANT  nobody:True|`),
 
-			text("### Discussions"),
-			media("https://i.ibb.co/QvHG2mg4/Group-1.png"),
-			text(`This is used to create a new discussion. (see |/man page:Discussions| for more)
-|/new| equivalent: |/new title:What beer to get for the barbecue? discussion:True|`),
+			// 			text("### Discussions"),
+			// 			media("https://i.ibb.co/QvHG2mg4/Group-1.png"),
+			// 			text(`This is used to create a new discussion. (see |/man page:Discussions| for more)
+			// |/new| equivalent: |/new title:What beer to get for the barbecue? discussion:True|`),
 
 			text("### Tags"),
 			media("https://i.ibb.co/W41bMLpL/tags.png"),
