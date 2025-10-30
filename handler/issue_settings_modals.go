@@ -48,24 +48,6 @@ func issuesFilterDataSubmit(s *dg.Session, i *dg.InteractionCreate, args []strin
 		title       = data.Components[4].(*dg.Label).Component.(*dg.TextInput).Value
 	)
 
-	priorityRoles, err := db.Roles.Select("id").Where("guild_id = ?", i.GuildID).Where("key in ?", priorities).Find(db.Ctx)
-	if err != nil {
-		return err
-	}
-	priorityRoleIDs := []string{}
-	for _, r := range priorityRoles {
-		priorityRoleIDs = append(priorityRoleIDs, r.ID)
-	}
-
-	categoryRoles, err := db.Roles.Select("id").Where("guild_id = ?", i.GuildID).Where("key in ?", categories).Find(db.Ctx)
-	if err != nil {
-		return err
-	}
-	categoryRoleIDs := []string{}
-	for _, r := range categoryRoles {
-		categoryRoleIDs = append(categoryRoleIDs, r.ID)
-	}
-
 	statuses := []db.IssueStatus{}
 	for _, s := range statusesRaw {
 		i, err := strconv.Atoi(s)
@@ -82,8 +64,8 @@ func issuesFilterDataSubmit(s *dg.Session, i *dg.InteractionCreate, args []strin
 		return err
 	}
 
-	state.Filter.PriorityRoleIDs = priorityRoleIDs
-	state.Filter.CategoryRoleIDs = categoryRoleIDs
+	state.Filter.PriorityRoleIDs = priorities
+	state.Filter.CategoryRoleIDs = categories
 	state.Filter.Statuses = statuses
 	state.Filter.Tags = db.ParseTags(tagsRaw)
 	state.Filter.Title = title

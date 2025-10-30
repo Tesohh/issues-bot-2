@@ -142,7 +142,7 @@ func issuesFilterData(s *dg.Session, i *dg.InteractionCreate, args []string) err
 			dg.SelectMenuOption{
 				Label:   strings.ToUpper(r.Key),
 				Emoji:   &dg.ComponentEmoji{Name: r.Emoji},
-				Value:   r.Key,
+				Value:   r.ID,
 				Default: slices.Contains(state.Filter.PriorityRoleIDs, r.ID),
 			},
 		)
@@ -158,7 +158,7 @@ func issuesFilterData(s *dg.Session, i *dg.InteractionCreate, args []string) err
 			dg.SelectMenuOption{
 				Label:   strings.ToUpper(r.Key),
 				Emoji:   &dg.ComponentEmoji{Name: r.Emoji},
-				Value:   r.Key,
+				Value:   r.ID,
 				Default: slices.Contains(state.Filter.CategoryRoleIDs, r.ID),
 			},
 		)
