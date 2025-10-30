@@ -33,6 +33,11 @@ var List = slash.Command{
 						Name:        "detached",
 						Description: "if true, the message will be sent as a message and not a reply",
 					},
+					{
+						Type:        dg.ApplicationCommandOptionBoolean,
+						Name:        "permanent",
+						Description: "if true, the list will never be purged",
+					},
 				},
 			},
 			{
@@ -61,6 +66,7 @@ var List = slash.Command{
 					return nil
 				}).
 				Preload("Issues.Tags", nil).
+				Preload("Issues.AssigneeUsers", nil).
 				Preload("Issues.PriorityRole", nil).
 				Preload("Issues.CategoryRole", nil)
 
@@ -85,12 +91,18 @@ var List = slash.Command{
 				project.Issues[i].Project.GuildID = project.GuildID
 			}
 
+			permanent := false
+			if permanentOpt, ok := options["permanent"]; ok {
+				permanent = permanentOpt.BoolValue()
+			}
+
 			// create a new state
 			state := db.ProjectViewState{
 				ProjectID: project.ID,
 				Project:   project,
 				Filter:    db.DefaultFilter(),
 				Sorter:    db.DefaultSorter(),
+				Permanent: permanent,
 			}
 
 			detached := false
